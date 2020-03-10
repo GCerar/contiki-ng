@@ -28,8 +28,6 @@ PROCESS(rf2xx_process, "AT86RF2xx driver");
 volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
 #endif
 
- uint8_t appIsRunning = 0;
-
 // SRC: https://barrgroup.com/Embedded-Systems/How-To/Define-Assert-Macro
 #define ASSERT(expr) ({ if (!(expr)) LOG_ERR("Err: " #expr "\n"); })
 #define ASSERT_EQUAL(x, y)  ({ if (x != y) LOG_ERR("Err: " #x " != " #y ", %i != %i\n", x, y); })
@@ -119,7 +117,7 @@ rf2xx_init(void)
     RF2XX_STATS_RESET();
 
     // Init buffers for packet statistics
-    STATS_init_packet_buffer();
+    STATS_initBuff();
 #endif
 
 	// Start Contiki process which will take care of received packets
@@ -215,7 +213,7 @@ again:
 
     #if RF2XX_STATS
         // Update TX packet statistics
-        if(appIsRunning) STATS_put_tx_packet(&txFrame);
+        STATS_txPush(&txFrame);
     #endif
 
     txFrame.trac = (RF2XX_ARET) ? bitRead(SR_TRAC_STATUS) : TRAC_SUCCESS;
@@ -453,7 +451,7 @@ rf2xx_isr(void)
 
             #if RF2XX_STATS
                 // Update RX packet statistics
-                if(appIsRunning) STATS_put_rx_packet(&rxFrame);
+                STATS_rxPush(&rxFrame);
             #endif
             process_poll(&rf2xx_process);
  

@@ -287,5 +287,5 @@ except IOError:
 finally:
     monitor.close()
     # Rename a file with device ID
-    if(not args.output):
-        monitor.rename_file(deviceID)
+    #if(not args.output):
+    #    monitor.rename_file(deviceID)

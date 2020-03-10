@@ -6,95 +6,97 @@
 #include "rf2xx.h"
 #include "rf2xx_hal.h"  // for SR_CHANNEL
 
+#include "os/net/mac/framer/frame802154.h"
+
+
+#define RF2XX_STATS_RINGBUF_SIZE    	(20)
+#define RF2XX_STATS_RINGBUF_NOISE_SIZE 	(1000)
+
 #if RF2XX_STATS
-	/* =========================
-	*    PACKETS STATISTICS
-	*  ========================= 
-	*  Whenever packed is sent or received its statistics are stored in a circular buffer.
-	*  Each buffer (for RX packets and TX packets) must be first initialized
-	*/
 
-	typedef struct{
-		void *buffer_start;
-		void *buffer_end;
-		int  *head;
-		int  *tail;
-		uint16_t capacity;	// Max is 65536
-		uint8_t size;
-		uint16_t count;
-	}buffer_t; 
+// PACKETS STATISTICS
+/*---------------------------------------------------------------------------*/
 
-	typedef struct{
-		uint32_t timestamp_s;
-		uint32_t timestamp_us;
-		uint8_t  type;
-		uint8_t  channel;
-		uint8_t  sqn;
-		uint8_t  len;
-		uint16_t source_addr;
-		int8_t   rssi;
-		uint8_t  lqi;
-		uint16_t count;
-	}rxPacket_t;
+typedef struct {
+    struct {
+		uint32_t s;
+		uint32_t us;
+	} ts;
 
-	typedef struct{
-		uint32_t timestamp_s;
-		uint32_t timestamp_us;
-		uint8_t  type;
-		uint8_t  channel;
-		uint8_t  sqn;
-		uint8_t  len;
-		uint16_t dest_addr;
-		uint8_t  unicast;
-		uint8_t  power;
-		uint16_t count;
-	} txPacket_t;
-	// sizeof = 20B
+    frame802154_t frame;
 
-	void    STATS_init_packet_buffer(void);
-	uint8_t STATS_put_rx_packet(rxFrame_t *frame);
-	uint8_t STATS_put_tx_packet(txFrame_t *frame);
-	uint8_t STATS_get_rx_packet(rxPacket_t *packet);
-	uint8_t STATS_get_tx_packet(txPacket_t *packet);
+    uint16_t count;
+    uint8_t channel;
+    int8_t rssi;
+    uint8_t lqi;
+    uint8_t power;
+} frame_meta_t;
 
-	void    STATS_display_packet_stats(void);
-	void    STATS_print_packet_stats(void);
-	void    STATS_clear_packet_stats(void);
+typedef frame_meta_t txPacket_t;
+typedef frame_meta_t rxPacket_t;
 
-	/* =========================
-	*    BACKGROUND NOISE
-	* ========================= 
-	* On each channel store its RSSI in a buffer and later display it in app. Each channel has its buffer for 
-	* storing values. They are initialized when need - if we get on new channel, that has not been yet init, 
-	* it gets alocated then. List of allready init channels is stored in channel_stats_index - 16bit value,
-	* each bit representing its channel. 
-	*/
 
-	typedef struct{
-		uint32_t timestamp_s;
-		uint32_t timestamp_us;
-		int rssi;
-	} bgNoise_t;
+typedef struct {
+	rxPacket_t items[RF2XX_STATS_RINGBUF_SIZE];
+	uint8_t head;
+    uint8_t tail;
+} rx_ringbuf_t;
 
-	uint8_t STATS_init_channel_buffer(buffer_t *b, uint8_t ch, uint16_t capacity);
-	void    STATS_free_channel_buffer(buffer_t *b, uint8_t ch);
-	uint8_t STATS_get_channel_rssi(buffer_t *b, uint8_t ch, bgNoise_t *bgn);
-	uint8_t STATS_put_channel_rssi(buffer_t *b, uint8_t ch, bgNoise_t *bgn);
+typedef struct {
+	txPacket_t items[RF2XX_STATS_RINGBUF_SIZE];
+	uint8_t head;
+    uint8_t tail;
+} tx_ringbuf_t;
 
-	void STATS_update_background_noise(uint16_t capacity);
-	void STATS_print_background_noise(void);
-	void STATS_clear_background_noise(void);
+void STATS_initBuff(void);
+void STATS_rxPush(rxFrame_t *raw);
+int  STATS_rxPull(rxPacket_t *item);
+void STATS_txPush(txFrame_t *raw);
+int  STATS_txPull(txPacket_t *item);
 
-	uint8_t STATS_is_channel_init(uint8_t channel);
+void STATS_parse_rxFrame(rxFrame_t *raw, rxPacket_t *out);
+void STATS_parse_txFrame(txFrame_t *raw, txPacket_t *out);
+
+void STATS_print_packet_stats(void);
+void STATS_clear_packet_stats(void);
+
+
+//    BACKGROUND NOISE
+/*---------------------------------------------------------------------------*/
+
+typedef struct {
+	struct {
+		uint32_t s;
+		uint32_t us;
+	} ts;
+
+	uint8_t channel;
+	int8_t rssi; // received signal strength index (dBm)
+} bgNoise_t;
+
+
+typedef struct {
+	bgNoise_t items[RF2XX_STATS_RINGBUF_NOISE_SIZE];
+	uint16_t head;
+    uint16_t tail;
+} bgn_ringbuf_t;
+
+
+void STATS_noisePush(const bgNoise_t *noise);
+int  STATS_noisePull(bgNoise_t *noise);
+
+void STATS_update_background_noise(void);
+
+void STATS_print_background_noise(void);
+void STATS_clear_background_noise(void);
+
 
 #endif
 
-/* =========================
- *     DRIVER STATISTICS
- * ========================= 
- * Statistics of driver are stored in rf2xxStats[]  Every time a specific event occurs,
- * its counter adds 1. 
-*/
+ 
+//     DRIVER STATISTICS
+/*---------------------------------------------------------------------------*/
+
 enum {
 	rxDetected,		// Detected packets
 	rxSuccess,		// Successfully received packets
