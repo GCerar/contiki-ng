@@ -177,10 +177,7 @@ STATS_parse_txFrame(txFrame_t *raw, txPacket_t *out)
     }
 
     // Check if it is broadcast
-    if (!frame802154_is_broadcast_addr(out->frame.fcf.dest_addr_mode, out->frame.dest_addr))
-    {
-
-    }
+    out->broadcast = frame802154_is_broadcast_addr(out->frame.fcf.dest_addr_mode, out->frame.dest_addr);
 
     // Check if ACK is required
     if(out->frame.fcf.ack_required){
@@ -257,12 +254,9 @@ STATS_print_packet_stats(void){
             case 0xf:
                 printf("-17"); break;
         }
-        printf(")\n");
-        /*
-        // TODO: ACK ne rabi ack ampak useeno ni multicast (paket ack je dalo kot multicast)
-        if(txPacket.frame.fcf.ack_required) printf(") U\n");
-        else printf(") M\n");
-        */
+        if(txPacket.broadcast) printf(") B\n");
+        else printf(") U\n");
+        
     }
 
     while(STATS_rxPull(&rxPacket)){
