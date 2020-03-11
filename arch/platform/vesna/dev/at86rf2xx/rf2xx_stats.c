@@ -278,7 +278,7 @@ STATS_print_packet_stats(void){
             printf("Undef ");
             break;
         }
-        printf("(C%3d L%3d S%3d | R%3d Q%3d)\n",rxPacket.channel, rxPacket.frame.payload_len, rxPacket.frame.seq, rxPacket.rssi, rxPacket.lqi);
+        printf("(C%3d L%3d S%3d | R%+3d Q%3d)\n",rxPacket.channel, rxPacket.frame.payload_len, rxPacket.frame.seq, rxPacket.rssi, rxPacket.lqi);
     }
 }
 
@@ -353,9 +353,9 @@ STATS_print_background_noise(void)
 {
     bgNoise_t bgn;
 
+    printf("BGN ");
     while(STATS_noisePull(&bgn)){
-        printf("[%ld:%ld](CH%d)%d", bgn.ts.s, bgn.ts.us, bgn.channel, bgn.rssi);
-        //TODO
+        printf("[%ld:%ld (CH%d)%+d] ", bgn.ts.s, bgn.ts.us, bgn.channel, bgn.rssi);
     }
     printf("\n");
 }

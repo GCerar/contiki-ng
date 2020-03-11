@@ -253,9 +253,9 @@ STATS_print_help(void){
 	printf("\n");
 	printf("       DESCRIPTION\n");
 	printf("----------------------------------------------------------------------------\n");
-	printf("CH :(buff-count)[time-stamp]: [delay]RSSI [delay]RSSI [delay]RSSI ...\n");
+	printf("BGN [time-stamp (channel)RSSI] [time-stamp (channel)RSSI] [ ...\n");
 	printf("\n");
-	printf("Tx [time-stamp] packet-type  dest-addr (chn len sqn | pow) BC/UC \n");
+	printf("Tx [time-stamp] packet-type  dest-addr (chn len sqn | pow) BC or UC \n");
 	printf("Rx [time-stamp] packet-type  sour-addr (chn len sqn | rssi lqi) \n");
 	printf("\n");
 	printf("On the end of file, there is a count of all received and transmited packets. \n");
