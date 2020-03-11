@@ -9,11 +9,11 @@
 #define LOG_MODULE  "STATS"
 #define LOG_LEVEL   LOG_LEVEL_INFO
 
+//TODO
+//#if RF2XX_STATS
 
-#if RF2XX_STATS
-
-static rx_ringbuf_t rx_ringbuf;
-static tx_ringbuf_t tx_ringbuf;
+static packet_ringbuf_t rx_ringbuf;
+static packet_ringbuf_t tx_ringbuf;
 static bgn_ringbuf_t bgn_ringbuf;
 
 void
@@ -42,7 +42,7 @@ STATS_txPush(txFrame_t *raw)
     count++;
     packet.count = count;
 
-    // Critical section
+    // Copy data into buffer
     memcpy(tx_ringbuf.items + tx_ringbuf.head, &packet, sizeof(txPacket_t));
 
     tx_ringbuf.head = (tx_ringbuf.head + 1) % RF2XX_STATS_RINGBUF_SIZE;
@@ -50,7 +50,7 @@ STATS_txPush(txFrame_t *raw)
      // If we are filling buffer too fast, drop oldest entry
     if (tx_ringbuf.tail == tx_ringbuf.head){
         tx_ringbuf.tail = (tx_ringbuf.tail + 1) % RF2XX_STATS_RINGBUF_SIZE;
-        printf("Drop oldest --- make larger ring buffer! \n");
+        // printf("Drop oldest --- make larger ring buffer! \n");
     }
 
 }
@@ -63,7 +63,7 @@ STATS_txPull(txPacket_t *item)
         return 0;
     }
 
-    // Critical section
+    // Copy data from buffer
     memcpy(item, tx_ringbuf.items + tx_ringbuf.tail, sizeof(txPacket_t));
     tx_ringbuf.tail = (tx_ringbuf.tail + 1) % RF2XX_STATS_RINGBUF_SIZE;
 
@@ -75,14 +75,14 @@ void
 STATS_rxPush(rxFrame_t *raw)
 {
     static uint32_t count = 0;
-
     rxPacket_t packet;
+
     STATS_parse_rxFrame(raw, &packet);
 
     count++;
     packet.count = count;
 
-    // Critical section
+    // Copy data into buffer
     memcpy(rx_ringbuf.items + rx_ringbuf.head, &packet, sizeof(rxPacket_t));
 
     rx_ringbuf.head = (rx_ringbuf.head + 1) % RF2XX_STATS_RINGBUF_SIZE;
@@ -90,19 +90,19 @@ STATS_rxPush(rxFrame_t *raw)
     // If we are filling buffer too fast, drop oldest entry
     if (rx_ringbuf.tail == rx_ringbuf.head) {
         rx_ringbuf.tail = (rx_ringbuf.tail + 1) % RF2XX_STATS_RINGBUF_SIZE;
-        printf("Drop oldest ---> make larger ring buffer! \n"); //TODO only for testing
+        //printf("Drop oldest ---> make larger ring buffer! \n");
     }
 }
 
 int
 STATS_rxPull(rxPacket_t *item)
 {
-    // Empty buffer
+    // If empty buffer
     if (rx_ringbuf.tail == rx_ringbuf.head) {
         return 0;
     }
 
-    // Critical section
+    // Copy data from buffer
     memcpy(item, rx_ringbuf.items + rx_ringbuf.tail, sizeof(rxPacket_t));
 
     rx_ringbuf.tail = (rx_ringbuf.tail + 1) % RF2XX_STATS_RINGBUF_SIZE;
@@ -116,7 +116,7 @@ STATS_parse_rxFrame(rxFrame_t *raw, rxPacket_t *out)
 {
     radio_value_t rv;
 
-    // record time at the reception
+    // Record time at the reception
     vsnTime_preciseUptime(&out->ts.s, &out->ts.us);
 
     // Use contiki's rx parser to extract data from raw frame
@@ -176,7 +176,7 @@ STATS_parse_txFrame(txFrame_t *raw, txPacket_t *out)
             break;
     }
 
-    // Check if it is multicast
+    // Check if it is broadcast
     if (!frame802154_is_broadcast_addr(out->frame.fcf.dest_addr_mode, out->frame.dest_addr))
     {
 
@@ -470,4 +470,4 @@ STATS_display_driver_stats_inline(void){
     );
 }
 
-#endif
+//#endif
