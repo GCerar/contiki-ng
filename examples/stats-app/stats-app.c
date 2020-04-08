@@ -97,7 +97,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		if((counter%(10 * SECOND)) == 0){
 			STATS_print_background_noise();
 		}
-		else if((counter % 10) == 0) {
+		else if((counter % 100) == 0) {
 			STATS_update_background_noise();
 		}
 	#else
@@ -108,7 +108,7 @@ PROCESS_THREAD(stats_process, ev, data)
 			STATS_update_background_noise();
 		}
 	#endif
-
+		// PROCESS_PAUSE();
 		// Every 10 seconds print packet statistics and clear the buffer
 		if((counter%(SECOND * 10)) == 0){
 			STATS_print_packet_stats();

@@ -21,15 +21,15 @@ typedef struct {
     struct {
 		uint32_t s;
 		uint32_t us;
-	} ts;
+	} ts;				// Timestamp
 
-    frame802154_t frame;
+    frame802154_t frame; // SQN, UC/BC, ADDRESS,... 
 
-    uint16_t count;
-    uint8_t channel;
-    int8_t rssi;
-    uint8_t lqi;
-    uint8_t power;
+    uint16_t 	count;
+    uint8_t 	channel;
+    int8_t 		rssi;
+    uint8_t 	lqi;
+    uint8_t 	power;
 } frame_meta_t;
 
 typedef frame_meta_t txPacket_t;
@@ -101,22 +101,22 @@ enum {
 	rxDetected,		// Detected packets
 	rxSuccess,		// Successfully received packets
 	rxToStack,		// Not used in TSCH
-	rxAddrMatch,	// Not used in TSCH
+	rxAddrMatch,	// Not used in TSCH?
 
 	rxData,			// Received Data packet
 	rxBeacon,		// Received Beacon packet
 	rxAck,			// Received Acknowledge
 
-	txCollision,	// Not used in TSCH
-	txNoAck,		// Not used in TSCH
-	txSuccess,		// Not used in TSCH (it's same as txCount)
+	txCollision,	// Not used in TSCH? - channel access failure
+	txNoAck,		// Not used in TSCH - no ACK received
+	txSuccess,		// Not used in TSCH - it's same as txCount
 	txCount,		// Num of sent packets
 	txError,		// Num of errors
 	txTry,			// Num of TX tries
 
-	txAck,			// Transmited Ack
-	txBeacon,		// Transmited Beacon
-	txData,			// Transmited Data
+	txAck,			// Transmitted Ack
+	txBeacon,		// Transmitted Beacon
+	txData,			// Transmitted Data
 	txReqAck,		// Request ACK (unicast packet)
 
 	RF2XX_STATS_COUNT
