@@ -12,7 +12,8 @@
 #define RF2XX_STATS_RINGBUF_SIZE    	(20)
 #define RF2XX_STATS_RINGBUF_NOISE_SIZE 	(1000)
 
-#if RF2XX_STATS
+//TODO
+//#if RF2XX_STATS
 
 // PACKETS STATISTICS
 /*---------------------------------------------------------------------------*/
@@ -32,21 +33,25 @@ typedef struct {
     uint8_t 	power;
 } frame_meta_t;
 
-typedef frame_meta_t txPacket_t;
-typedef frame_meta_t rxPacket_t;
-
-
 typedef struct {
-	rxPacket_t items[RF2XX_STATS_RINGBUF_SIZE];
-	uint8_t head;
-    uint8_t tail;
-} rx_ringbuf_t;
+    struct {
+		uint32_t s;
+		uint32_t us;
+	} ts;
+
+    frame802154_t frame;
+
+    uint16_t count;
+    uint8_t  channel;
+    int8_t   rssi;
+    uint8_t  lqi;
+} rxPacket_t;
 
 typedef struct {
 	txPacket_t items[RF2XX_STATS_RINGBUF_SIZE];
 	uint8_t head;
     uint8_t tail;
-} tx_ringbuf_t;
+} packet_ringbuf_t;
 
 void STATS_initBuff(void);
 void STATS_rxPush(rxFrame_t *raw);
@@ -139,4 +144,4 @@ enum {
 
 
 
-#endif
+//#endif
