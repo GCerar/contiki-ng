@@ -28,10 +28,9 @@ typedef struct {
 
     uint16_t 	count;
     uint8_t 	channel;
-    int8_t 		rssi;
-    uint8_t 	lqi;
     uint8_t 	power;
-} frame_meta_t;
+    uint8_t 	broadcast;
+} txPacket_t;
 
 typedef struct {
     struct {
