@@ -39,7 +39,7 @@
 
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
-#define MAX_APP_TIME  (SECOND * 500) 
+#define MAX_APP_TIME  (SECOND * 600) 
 
 uint32_t counter = 0;
 
