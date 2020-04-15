@@ -39,7 +39,7 @@
 
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
-#define MAX_APP_TIME  (SECOND * 1200) 
+#define MAX_APP_TIME  (SECOND * 600) 
 
 uint32_t counter = 0;
 
@@ -87,6 +87,8 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	// Optional: print help into log file
 	STATS_print_help();
+
+	printf("Git-pull test\n");
 
 	etimer_set(&timer, 1);  //ms = 1, sec = 1000
 
