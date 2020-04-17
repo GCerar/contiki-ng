@@ -39,7 +39,7 @@
 
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
-#define MAX_APP_TIME  (SECOND * 90) 
+#define MAX_APP_TIME  (SECOND * 600) 
 
 uint32_t counter = 0;
 
@@ -97,7 +97,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		if((counter%(10 * SECOND)) == 0){
 			STATS_print_background_noise();
 		}
-		else if((counter % 100) == 0) {
+		else if((counter % 100) == 0) {	//TODO change back to 10...100 is only for testing
 			STATS_update_background_noise();
 		}
 	#else
