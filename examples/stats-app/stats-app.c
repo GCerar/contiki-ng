@@ -41,6 +41,7 @@
 #define SECOND 		  		(1000)
 #define MAX_APP_TIME  		(SECOND * 600) 
 #define BGN_MEASURE_TIME_MS	(100)
+#define PING_INTERVAL_TIME	(SECOND)
 
 uint32_t counter = 0;
 
@@ -122,7 +123,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	#if STATS_PING
 		uip_ds6_nbr_t *nbr;
 
-		if((counter % SECOND) == 0){
+		if((counter % PING_INTERVAL_TIME) == 0){
 
 			nbr = uip_ds6_nbr_head();
 
@@ -130,14 +131,16 @@ PROCESS_THREAD(stats_process, ev, data)
 				printf("No neighbour!\n");
 			}
 			else{
-				
-				char buf[UIPLIB_IPV6_MAX_STR_LEN];
-				uiplib_ipaddr_snprint(buf, sizeof(buf), uip_ds6_nbr_get_ipaddr(nbr));
-				printf("Address: ");
-				printf("%s \n", buf);
+				printf("Found nbr:");
+				uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
 
+				const uip_ipaddr_t *adresa;
+
+				adresa = uip_ds6_nbr_get_ipaddr(nbr);
 				//ce je sosedou vec
 				//nbr = uip_ds6_nbr_next(nbr);
+
+				process_start(&ping_process, adresa);
 			}
 		}
 	#endif
@@ -197,18 +200,23 @@ PROCESS_THREAD(ping_process, ev, data)
 
 	PROCESS_BEGIN();
 
+	printf("Pinging process");
+
 	// Dobi argumente - koga pingat
 
-	if(data == NULL) {
+	/*if(data == NULL) {
 		printf("Destination IPv6 address is not specified\n");
 		PROCESS_EXIT();
 	//  TODO:testirej malo
 	} else if(uiplib_ipaddrconv(data, &remote_addr) == 0) {
 		printf("Invalid IPv6 address: %s\n", data);
 		PROCESS_EXIT();
-	}
+	}*/
 
-	printf("Pinging ");
+	uiplib_ipaddr_print(data);
+	printf("\n");
+	
+	PROCESS_EXIT();
 
 	// Print address to ping
 	char buf[UIPLIB_IPV6_MAX_STR_LEN];
