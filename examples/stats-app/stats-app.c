@@ -38,23 +38,33 @@
 #include "net/ipv6/uip.h"
 
 /*---------------------------------------------------------------------------*/
+// Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME  		(SECOND * 600) 
+#define MAX_APP_TIME_MS  	(SECOND * 60 * 10) 
 #define BGN_MEASURE_TIME_MS	(100)
-#define PING_SEND_TIME_MS	(SECOND * 3)
+#define PING_SEND_TIME_MS	(SECOND)
 
-uint32_t counter = 0;
+// Main application miliseconds counter
+static uint32_t counter_ms = 0;
 
-//TODO verjtnu bo treba dodat NETSTACK_CONF_WITH_IPV6 zato da bo ping delou
+// Varables for ping process
+static const char *ping_output_func = NULL;
+static struct process *curr_ping_process;
+static uint8_t ping_ttl;
+static uint16_t ping_datalen;
+static uint32_t ping_count = 0;
+static uint32_t ping_timeout_count = 0;
+
 /*---------------------------------------------------------------------------*/
 void STATS_print_help(void);
-void STATS_input_command(char *data);
+void STATS_parse_input_command(char *data);
 void STATS_set_device_as_root(void);
 void STATS_close_app(void);
 
 
-static void echo_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen);
 void STATS_setup_ping_reply_callback(void);
+void ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen);
+
 /*---------------------------------------------------------------------------*/
 PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
@@ -67,173 +77,15 @@ PROCESS_THREAD(serial_input_process, ev, data)
 {
     PROCESS_BEGIN();
     while(1){
-      PROCESS_WAIT_EVENT_UNTIL(
-        (ev == serial_line_event_message) && (data != NULL));
-      STATS_input_command(data);
+      PROCESS_WAIT_EVENT_UNTIL((ev == serial_line_event_message) && (data != NULL));
+      STATS_parse_input_command(data);
     }
     PROCESS_END();
 }
 
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(stats_process, ev, data)
-{
-	static struct etimer timer;
-
-	PROCESS_BEGIN();
-
-	printf(">Starting app! \n");
-	counter = 0;  
-
-	// Empty buffers if they have some values from before
-	RF2XX_STATS_RESET();
-	STATS_clear_packet_stats();
-	STATS_clear_background_noise();
-
-	#if STATS_PING
-		// Setup ping callback
-		STATS_setup_ping_reply_callback();
-	#endif
-
-	printf("AD %d\n", (MAX_APP_TIME/1000));
-
-	// Optional: print help into log file
-	STATS_print_help();
-
-	etimer_set(&timer, 1);  //ms = 1, sec = 1000
-
-	while(1) {
-		counter++;
-
-	#if STATS_DEBUGG
-		if((counter % (10 * SECOND)) == 0){
-			STATS_print_background_noise();
-		}
-		else if((counter % 500) == 0) {
-			STATS_update_background_noise();
-		}
-	#else
-		if((counter % (BGN_MEASURE_TIME_MS * 1000)) == 0){
-			STATS_print_background_noise();
-		}
-		else if((counter % BGN_MEASURE_TIME_MS) == 0){
-			STATS_update_background_noise();
-		}
-	#endif
-
-	#if STATS_PING
-		uip_ds6_nbr_t *nbr;
-
-		if((counter % PING_SEND_TIME_MS) == 0){
-
-			nbr = uip_ds6_nbr_head();
-
-			if(nbr == NULL){
-				printf("No neighbour!\n");
-			}
-			else{
-				//printf("Found nbr:");
-				//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
-
-				const uip_ipaddr_t *address;
-
-				address = uip_ds6_nbr_get_ipaddr(nbr);
-				//ce je sosedou vec
-				//nbr = uip_ds6_nbr_next(nbr);
-
-				process_start(&ping_process, address);
-			}
-		}
-	#endif
-
-
-
-		// PROCESS_PAUSE();
-		// Every 10 seconds print packet statistics and clear the buffer
-		if((counter%(SECOND * 10)) == 0){
-			STATS_print_packet_stats();
-		}
-
-		// After max time send stop command ('=') and print driver statistics
-		if(counter == (MAX_APP_TIME)){
-			STATS_close_app();
-			PROCESS_EXIT();
-		}
-
-		// Wait for the periodic timer to expire and then restart the timer.
-		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
-		etimer_reset(&timer);
-	}
-
-	PROCESS_END();
-}
-
-/*---------------------------------------------------------------------------*/
-
-static struct uip_icmp6_echo_reply_notification echo_reply_notification;
-static const char *curr_ping_output_func = NULL;
-static struct process *curr_ping_process;
-static uint8_t curr_ping_ttl;
-static uint16_t curr_ping_datalen;
-
 void
-STATS_setup_ping_reply_callback(void){
-	uip_icmp6_echo_reply_callback_add(&echo_reply_notification, echo_reply_handler);
-}
-
-static void
-echo_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen)
+STATS_parse_input_command(char *data)
 {
-	printf("----------- Echo handler \n");
-  if(curr_ping_output_func != NULL) {
-    curr_ping_output_func = NULL;
-    curr_ping_ttl = ttl;
-    curr_ping_datalen = datalen;
-    process_poll(curr_ping_process);
-  }
-}
-
-
-PROCESS_THREAD(ping_process, ev, data)
-{
-	static uip_ipaddr_t remote_addr;
-	static struct etimer timeout_timer;
-	char *next_args;
-
-	PROCESS_BEGIN();
-
-	printf("Pinging process - nbr: ");
-
-	uiplib_ipaddr_print(data);
-	printf("\n");
-	// Send ping request 
-
-	curr_ping_process = PROCESS_CURRENT();
-  	curr_ping_output_func = "ping";
-
-
-	etimer_set(&timeout_timer, (3 * CLOCK_SECOND));
-	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);
-	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timeout_timer) || curr_ping_output_func == NULL ); // ev == PROCESS_EVENT_POLL); // ali PT_WAIT_UNTIL(pt, curr_ping_output_func == NULL || etimer_expired(&timeout_timer));
-	printf("event: %d \n", ev);
-
-	if(curr_ping_output_func != NULL) {
-		printf("Timeout\n");
-		curr_ping_output_func = NULL;
-	} else {
-		printf("Received ping reply from ");
-		uiplib_ipaddr_print(data);
-		printf(", len %u, ttl %u, delay %lu ms\n",
-				curr_ping_datalen, curr_ping_ttl, (1000*(clock_time() - timeout_timer.timer.start))/CLOCK_SECOND);
-	}
-
-	PROCESS_END();
-}
-
-
-
-/*---------------------------------------------------------------------------*/
-void
-STATS_input_command(char *data){
     char cmd = data[0];
     switch(cmd){
       case '>':
@@ -249,10 +101,16 @@ STATS_input_command(char *data){
         STATS_close_app();
         break;
 
-      case '!':
-        //process_start(&ping_process, NULL);
-        //STATS_ping_neighbour..
+    /*  case '!':
+	  // Example usage (not tested yet): ! fe80::212:4b00:6:1234
+		uip_ipaddr_t remote_addr;
+		char *args;
+		args = data[2];
+		if(uiplib_ipaddrconv(args, &remote_addr) != 0){
+        	process_start(&ping_process, &remote_addr);
+		}
         break;
+	*/
 
       //case 'reboot':
         //watchdog_reboot();
@@ -261,8 +119,158 @@ STATS_input_command(char *data){
 }
 
 /*---------------------------------------------------------------------------*/
+PROCESS_THREAD(stats_process, ev, data)
+{
+	static struct etimer timer;
+
+	PROCESS_BEGIN();
+
+	printf(">Starting app! \n");
+	counter_ms = 0;  
+
+	// Empty buffers if they have some values from before
+	RF2XX_STATS_RESET();
+	STATS_clear_packet_stats();
+	STATS_clear_background_noise();
+
+	#if STATS_PING
+		// Setup ping callback
+		STATS_setup_ping_reply_callback();
+	#endif
+
+	printf("AD %d\n", (MAX_APP_TIME_MS/1000));
+
+	// Optional: print help into log file
+	STATS_print_help();
+
+	etimer_set(&timer, 1);  //ms = 1, sec = 1000
+
+	while(1)
+	{
+		counter_ms++;
+
+	#if STATS_PING_NBR
+		uip_ds6_nbr_t *nbr;
+		uip_ipaddr_t *address;
+
+		if((counter_ms % PING_SEND_TIME_MS) == 0){
+
+			nbr = uip_ds6_nbr_head();
+
+			if(nbr != NULL){
+				//printf("Found nbr at IP:");
+				//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
+
+				address = uip_ds6_nbr_get_ipaddr(nbr);
+				//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbours
+				
+				process_start(&ping_process, address);
+			}
+		}
+	#endif
+
+	#if STATS_DEBUGG
+		if((counter_ms % (10 * SECOND)) == 0){
+			STATS_print_background_noise();
+		}
+		else if((counter_ms % 500) == 0) {
+			STATS_update_background_noise();
+		}
+	#else
+		if((counter_ms % (BGN_MEASURE_TIME_MS * 1000)) == 0){
+			STATS_print_background_noise();
+		}
+		else if((counter_ms % BGN_MEASURE_TIME_MS) == 0){
+			STATS_update_background_noise();
+		}
+	#endif
+
+		// PROCESS_PAUSE();
+		// Every 10 seconds print packet statistics and clear the buffer
+		if((counter_ms%(SECOND * 10)) == 0){
+			STATS_print_packet_stats();
+		}
+
+		// After max time send stop command ('=') and print driver statistics
+		if(counter_ms == (MAX_APP_TIME_MS)){
+			STATS_close_app();
+			PROCESS_EXIT();
+		}
+
+		// Wait for the periodic timer to expire and then restart the timer.
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+		etimer_reset(&timer);
+	}
+
+	PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(ping_process, ev, data)
+{
+	static struct etimer timeout_timer;
+
+	PROCESS_BEGIN();
+
+	#if STATS_DEBUGG
+		printf("Pinging neighbour: ");
+		uiplib_ipaddr_print(data);
+		printf("\n"); 
+	#endif
+
+	etimer_set(&timeout_timer, PING_SEND_TIME_MS - 100);
+	curr_ping_process = PROCESS_CURRENT();
+  	ping_output_func = "ping";
+
+	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);
+	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timeout_timer) || ping_output_func == NULL );
+
+	// Timeout
+	if(ping_output_func != NULL){
+		ping_timeout_count++;
+		printf("PT %ld\n",ping_timeout_count);
+		ping_output_func = NULL;
+	} 
+	// Reply received
+	else{
+		ping_count++;
+		printf("PR %ld\n", ping_count);
+
+		#if STATS_DEBUG
+			printf("Received ping reply from ");
+			uiplib_ipaddr_print(data);
+			printf(", len %u, ttl %u, delay %lu ms\n",
+					ping_datalen, ping_ttl, (1000*(clock_time() - timeout_timer.timer.start))/CLOCK_SECOND);
+		#endif
+	}
+	PROCESS_END();
+}
+
+
 void
-STATS_set_device_as_root(void){
+STATS_setup_ping_reply_callback(void)
+{
+	static struct uip_icmp6_echo_reply_notification echo_reply_notification;
+	uip_icmp6_echo_reply_callback_add(&echo_reply_notification, ping_reply_handler);
+}
+
+void
+ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen)
+{
+  if(ping_output_func != NULL) {
+    ping_output_func = NULL;
+    ping_ttl = ttl;
+    ping_datalen = datalen;
+
+    process_poll(curr_ping_process);
+  }
+}
+
+
+/*---------------------------------------------------------------------------*/
+void
+STATS_set_device_as_root(void)
+{
 	static uip_ipaddr_t prefix;
 	const uip_ipaddr_t *default_prefix = uip_ds6_default_prefix();
 	uip_ip6addr_copy(&prefix, default_prefix);
@@ -270,15 +278,16 @@ STATS_set_device_as_root(void){
   	if(!NETSTACK_ROUTING.node_is_root()) {
      	NETSTACK_ROUTING.root_set_prefix(&prefix, NULL);
      	NETSTACK_ROUTING.root_start();
-	} else {
+	} 
+	else{
       	printf("Node is already a DAG root\n");
     }
 }
 
 /*---------------------------------------------------------------------------*/
 void
-STATS_close_app(void){
-
+STATS_close_app(void)
+{
 	STATS_print_driver_stats();
 	// Send '=' cmd to stop the monitor
 	printf("=End monitoring serial port\n");

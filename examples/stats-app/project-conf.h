@@ -11,12 +11,10 @@
 #define TSCH_LOG_CONF_PER_SLOT                     (0)
 
 // Defines for app
-#define RF2XX_CONF_STATS                          (1)
+#define RF2XX_CONF_STATS                           (1)
 
-#define STATS_DEBUGG                              (1)
+#define STATS_DEBUGG                               (1)
 
-#define STATS_PING                                 (1)
+#define STATS_PING_NBR                             (1)
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE (uint8_t[]){ 15, 20, 26 }
-
-
