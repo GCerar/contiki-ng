@@ -25,7 +25,7 @@ PROCESS(rf2xx_process, "AT86RF2xx driver");
 
 
 #if RF2XX_STATS
-volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
+volatile uint64_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
 #endif
 
 // SRC: https://barrgroup.com/Embedded-Systems/How-To/Define-Assert-Macro

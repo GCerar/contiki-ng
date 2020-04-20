@@ -40,12 +40,15 @@
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME_MS  	(SECOND * 60 * 10) 
+#define MAX_APP_TIME_MS  	(SECOND * 60 * 60) 
 #define BGN_MEASURE_TIME_MS	(100)
-#define PING_SEND_TIME_MS	(SECOND)
+#define PING_SEND_TIME_MS	(SECOND * 3)
 
 // Main application miliseconds counter
 static uint32_t counter_ms = 0;
+
+// Is device root of the DAG network
+static uint8_t device_is_root = 0;
 
 // Varables for ping process
 static const char *ping_output_func = NULL;
@@ -54,6 +57,8 @@ static uint8_t ping_ttl;
 static uint16_t ping_datalen;
 static uint32_t ping_count = 0;
 static uint32_t ping_timeout_count = 0;
+static uint32_t ping_time_start;
+static uint32_t ping_time_reply;
 
 /*---------------------------------------------------------------------------*/
 void STATS_print_help(void);
@@ -93,6 +98,7 @@ STATS_parse_input_command(char *data)
         break;
       
       case '*':
+	  	device_is_root = 1;
         STATS_set_device_as_root();
         break;
       
@@ -133,10 +139,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	STATS_clear_packet_stats();
 	STATS_clear_background_noise();
 
-	#if STATS_PING
-		// Setup ping callback
-		STATS_setup_ping_reply_callback();
-	#endif
+	STATS_setup_ping_reply_callback();
 
 	printf("AD %d\n", (MAX_APP_TIME_MS/1000));
 
@@ -148,23 +151,24 @@ PROCESS_THREAD(stats_process, ev, data)
 	while(1)
 	{
 		counter_ms++;
-
 	#if STATS_PING_NBR
 		uip_ds6_nbr_t *nbr;
 		uip_ipaddr_t *address;
 
-		if((counter_ms % PING_SEND_TIME_MS) == 0){
+		if(!device_is_root){
+			if((counter_ms % PING_SEND_TIME_MS) == 0){
 
-			nbr = uip_ds6_nbr_head();
+				nbr = uip_ds6_nbr_head();
 
-			if(nbr != NULL){
-				//printf("Found nbr at IP:");
-				//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
+				if(nbr != NULL){
+					//printf("Found nbr at IP:");
+					//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
 
-				address = uip_ds6_nbr_get_ipaddr(nbr);
-				//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbours
-				
-				process_start(&ping_process, address);
+					address = uip_ds6_nbr_get_ipaddr(nbr);
+					//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbours
+					
+					process_start(&ping_process, address);
+				}
 			}
 		}
 	#endif
@@ -177,7 +181,7 @@ PROCESS_THREAD(stats_process, ev, data)
 			STATS_update_background_noise();
 		}
 	#else
-		if((counter_ms % (BGN_MEASURE_TIME_MS * 1000)) == 0){
+		if((counter_ms % (BGN_MEASURE_TIME_MS * 100)) == 0){	//TODO: fix - back to 1000
 			STATS_print_background_noise();
 		}
 		else if((counter_ms % BGN_MEASURE_TIME_MS) == 0){
@@ -218,23 +222,23 @@ PROCESS_THREAD(ping_process, ev, data)
 		printf("\n"); 
 	#endif
 
-	etimer_set(&timeout_timer, PING_SEND_TIME_MS - 100);
 	curr_ping_process = PROCESS_CURRENT();
   	ping_output_func = "ping";
-
-	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);
+	ping_time_start = vsnTime_uptimeMS();
+	etimer_set(&timeout_timer, (SECOND));
+	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);	//data is the address
 	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timeout_timer) || ping_output_func == NULL );
 
 	// Timeout
 	if(ping_output_func != NULL){
 		ping_timeout_count++;
-		printf("PT %ld\n",ping_timeout_count);
+		printf("PT %ld [%ld]\n",ping_timeout_count, ping_time_start);
 		ping_output_func = NULL;
 	} 
 	// Reply received
 	else{
 		ping_count++;
-		printf("PR %ld\n", ping_count);
+		printf("PR %ld [%ld - > %ld]\n", ping_count, ping_time_start, ping_time_reply);
 
 		#if STATS_DEBUG
 			printf("Received ping reply from ");
@@ -258,6 +262,7 @@ void
 ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen)
 {
   if(ping_output_func != NULL) {
+	ping_time_reply = vsnTime_uptimeMS();
     ping_output_func = NULL;
     ping_ttl = ttl;
     ping_datalen = datalen;
@@ -289,6 +294,8 @@ void
 STATS_close_app(void)
 {
 	STATS_print_driver_stats();
+
+	printf("Ping replies: %ld, timeout: %ld \n", ping_count, ping_timeout_count);
 	// Send '=' cmd to stop the monitor
 	printf("=End monitoring serial port\n");
 
@@ -301,6 +308,7 @@ STATS_close_app(void)
 	if(NETSTACK_ROUTING.node_is_root()){
 		NETSTACK_ROUTING.leave_network();
 	}
+	device_is_root = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -324,6 +332,12 @@ STATS_print_help(void){
 	printf("Tx [time-stamp] packet-type  dest-addr (chn len sqn | pow) BC or UC \n");
 	printf("Rx [time-stamp] packet-type  sour-addr (chn len sqn | rssi lqi) \n");
 	printf("\n");
+	#if STATS_PING_NBR
+	printf("If ping option is enabled, device will ping each other. R = received, T = timeout \n");
+	printf("PR x [start time -> reply time]\n");
+	printf("PT x [start time] \n");
+	printf("\n");
+	#endif
 	printf("On the end of file, there is a count of all received and transmited packets. \n");
 	printf("----------------------------------------------------------------------------\n");
 }

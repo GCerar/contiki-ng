@@ -13,7 +13,7 @@
 // Defines for app
 #define RF2XX_CONF_STATS                           (1)
 
-#define STATS_DEBUGG                               (1)
+#define STATS_DEBUGG                               (0)
 
 #define STATS_PING_NBR                             (1)
 
