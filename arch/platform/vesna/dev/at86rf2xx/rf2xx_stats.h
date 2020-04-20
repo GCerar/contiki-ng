@@ -131,7 +131,7 @@ enum {
 	void STATS_print_driver_stats(void);
 
 #if RF2XX_STATS
-	extern volatile uint64_t rf2xxStats[RF2XX_STATS_COUNT];
+	extern volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT];
 	#define RF2XX_STATS_GET(event)		rf2xxStats[event]
 	#define RF2XX_STATS_ADD(event)		rf2xxStats[event]++
 	#define RF2XX_STATS_RESET()    		memset(rf2xxStats, 0, sizeof(rf2xxStats[0]) * RF2XX_STATS_COUNT)
