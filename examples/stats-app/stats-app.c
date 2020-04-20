@@ -41,7 +41,7 @@
 #define SECOND 		  		(1000)
 #define MAX_APP_TIME  		(SECOND * 600) 
 #define BGN_MEASURE_TIME_MS	(100)
-#define PING_INTERVAL_TIME	(SECOND)
+#define PING_SEND_TIME_MS	(SECOND * 3)
 
 uint32_t counter = 0;
 
@@ -123,7 +123,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	#if STATS_PING
 		uip_ds6_nbr_t *nbr;
 
-		if((counter % PING_INTERVAL_TIME) == 0){
+		if((counter % PING_SEND_TIME_MS) == 0){
 
 			nbr = uip_ds6_nbr_head();
 
@@ -131,16 +131,16 @@ PROCESS_THREAD(stats_process, ev, data)
 				printf("No neighbour!\n");
 			}
 			else{
-				printf("Found nbr:");
-				uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
+				//printf("Found nbr:");
+				//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
 
-				const uip_ipaddr_t *adresa;
+				const uip_ipaddr_t *address;
 
-				adresa = uip_ds6_nbr_get_ipaddr(nbr);
+				address = uip_ds6_nbr_get_ipaddr(nbr);
 				//ce je sosedou vec
 				//nbr = uip_ds6_nbr_next(nbr);
 
-				process_start(&ping_process, adresa);
+				process_start(&ping_process, address);
 			}
 		}
 	#endif
@@ -183,6 +183,7 @@ STATS_setup_ping_reply_callback(void){
 static void
 echo_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen)
 {
+	printf("----------- Echo handler \n");
   if(curr_ping_output_func != NULL) {
     curr_ping_output_func = NULL;
     curr_ping_ttl = ttl;
@@ -200,38 +201,18 @@ PROCESS_THREAD(ping_process, ev, data)
 
 	PROCESS_BEGIN();
 
-	printf("Pinging process");
-
-	// Dobi argumente - koga pingat
-
-	/*if(data == NULL) {
-		printf("Destination IPv6 address is not specified\n");
-		PROCESS_EXIT();
-	//  TODO:testirej malo
-	} else if(uiplib_ipaddrconv(data, &remote_addr) == 0) {
-		printf("Invalid IPv6 address: %s\n", data);
-		PROCESS_EXIT();
-	}*/
+	printf("Pinging process - nbr: ");
 
 	uiplib_ipaddr_print(data);
 	printf("\n");
-	
-	PROCESS_EXIT();
-
-	// Print address to ping
-	char buf[UIPLIB_IPV6_MAX_STR_LEN];
-  	uiplib_ipaddr_snprint(buf, sizeof(buf), &remote_addr);
-	printf("%s", buf);
-	printf("\n");
-
 	// Send ping request 
 
 	curr_ping_process = PROCESS_CURRENT();
   	curr_ping_output_func = "ping";
 
 
-	etimer_set(&timeout_timer, (5 * CLOCK_SECOND));
-	uip_icmp6_send(&remote_addr, ICMP6_ECHO_REQUEST, 0, 4);
+	etimer_set(&timeout_timer, (3 * CLOCK_SECOND));
+	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);
 	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timeout_timer) || curr_ping_output_func == NULL ); // ev == PROCESS_EVENT_POLL); // ali PT_WAIT_UNTIL(pt, curr_ping_output_func == NULL || etimer_expired(&timeout_timer));
 	printf("event: %d \n", ev);
 
@@ -240,8 +221,7 @@ PROCESS_THREAD(ping_process, ev, data)
 		curr_ping_output_func = NULL;
 	} else {
 		printf("Received ping reply from ");
-		
-
+		uiplib_ipaddr_print(data);
 		printf(", len %u, ttl %u, delay %lu ms\n",
 				curr_ping_datalen, curr_ping_ttl, (1000*(clock_time() - timeout_timer.timer.start))/CLOCK_SECOND);
 	}
