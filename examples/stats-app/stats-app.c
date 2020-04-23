@@ -40,7 +40,7 @@
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME_MS  	(SECOND * 60 * 60) 
+#define MAX_APP_TIME_MS  	(SECOND * 60 * 5) 
 #define BGN_MEASURE_TIME_MS	(100)
 #define PING_SEND_TIME_MS	(SECOND * 3)
 
