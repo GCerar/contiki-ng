@@ -20,7 +20,7 @@
 
 
 #define RF2XX_UNDEFINED     ((uint8_t)0x00)
-//#define RF2XX_AT86RF212     ((uint8_t)0x07)
+#define RF2XX_AT86RF212     ((uint8_t)0x07)
 #define RF2XX_AT86RF231     ((uint8_t)0x03)
 #define RF2XX_AT86RF230     ((uint8_t)0x02)
 //#define RF2XX_AT86RF232     (0x0A) // was never tested

@@ -211,7 +211,7 @@ rf2xx_reset(void)
                 case RF2XX_AT86RF233:
                 case RF2XX_AT86RF231:
                 case RF2XX_AT86RF230:
-                //case RF2XX_AT86RF212:
+                case RF2XX_AT86RF212:
                     rf2xxChip = partNum;
                 default:
                     break;
