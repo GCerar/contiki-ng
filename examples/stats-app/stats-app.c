@@ -172,7 +172,8 @@ PROCESS_THREAD(stats_process, ev, data)
 	PROCESS_BEGIN();
 
 	// Respond to LGTC
-	STATS_output_command(cmd_start);  
+	STATS_output_command(cmd_start);
+	// counter = 0;																							 TODO  
 
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
@@ -219,15 +220,14 @@ PROCESS_THREAD(stats_process, ev, data)
 		}
 		#endif
 
-		// PROCESS_PAUSE();
 		// Every 10 seconds print statistics and clear the buffer
-		if((counter%10) == 0){
+		if((counter % 10) == 0){
 			STATS_print_packet_stats();
 			STATS_print_background_noise();
 		}
 
 		// After max time send stop command ('=') and print driver statistics
-		if(counter== (MAX_APP_TIME)){
+		if(counter == MAX_APP_TIME){
 			STATS_close_app();
 			PROCESS_EXIT();
 		}
