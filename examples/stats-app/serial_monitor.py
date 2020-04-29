@@ -171,13 +171,13 @@ monitor.prepare_file(name)
 # ----------------------------------------------------------------------
 if(args.root):
     print("Set device as DAG root")
-    monitor.send_cmd("*Root")
+    monitor.send_cmd("*")
     
 # ----------------------------------------------------------------------
 # Start the app
 # ----------------------------------------------------------------------
 print("Send start command")
-monitor.send_cmd(">Start")
+monitor.send_cmd(">")
 
 # Wait for response ('>' character) from Vesna for 3 seconds
 print("Waiting for response...")
@@ -187,8 +187,8 @@ monitor.wait_response(3)
 if(not monitor.gotResponse):
     print("No response -> send start cmd again...")
     monitor.flush()
-    monitor.send_cmd("=End")
-    monitor.send_cmd(">Start")
+    monitor.send_cmd("=")
+    monitor.send_cmd(">")
     monitor.wait_response(3)
 
 if(not monitor.gotResponse):
@@ -204,7 +204,7 @@ monitor.file = open(monitor.filename, "a")
 # Get general info about the app
 # ----------------------------------------------------------------------
 
-# Get max duration of the app ("AD 1200")
+# Get max duration of the app in seconds ("AD 1200")
 value = monitor.read_line()
 if((chr(value[0]) == 'A') and (chr(value[1])== 'D')):
     MAX_APP_TIME = int(value[3:])
@@ -259,7 +259,7 @@ try:
 
 except KeyboardInterrupt:
     print("\n Keyboard interrupt!..send stop command")
-    monitor.send_cmd("=End")
+    monitor.send_cmd("=")
 
     # Get last data ("driver statistics") before closing the monitor
     while(True):

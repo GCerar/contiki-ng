@@ -40,12 +40,12 @@
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME_MS  	(SECOND * 60 * 60) 
+#define MAX_APP_TIME  		(60 * 10) 
 #define BGN_MEASURE_TIME_MS	(100)
-#define PING_SEND_TIME_MS	(SECOND * 3)
+#define PING_SEND_TIME		(3)
 
-// Main application miliseconds counter
-static uint32_t counter_ms = 0;
+// Stats application seconds counter
+static uint32_t counter = 0;
 
 // Is device root of the DAG network
 static uint8_t device_is_root = 0;
@@ -60,9 +60,12 @@ static uint32_t ping_timeout_count = 0;
 static uint32_t ping_time_start;
 static uint32_t ping_time_reply;
 
+// Serial commands
+enum STATS_commands {cmd_start, cmd_stop, app_duration};
 /*---------------------------------------------------------------------------*/
 void STATS_print_help(void);
-void STATS_parse_input_command(char *data);
+void STATS_input_command(char *data);
+void STATS_output_command(uint8_t cmd);
 void STATS_set_device_as_root(void);
 void STATS_close_app(void);
 
@@ -74,6 +77,7 @@ void ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16
 PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
 PROCESS(ping_process, "Pinging process");
+PROCESS(bgn_process, "Background noise process");
 
 AUTOSTART_PROCESSES(&serial_input_process);
 
@@ -83,13 +87,13 @@ PROCESS_THREAD(serial_input_process, ev, data)
     PROCESS_BEGIN();
     while(1){
       PROCESS_WAIT_EVENT_UNTIL((ev == serial_line_event_message) && (data != NULL));
-      STATS_parse_input_command(data);
+      STATS_input_command(data);
     }
     PROCESS_END();
 }
 
 void
-STATS_parse_input_command(char *data)
+STATS_input_command(char *data)
 {
     char cmd = data[0];
     switch(cmd){
@@ -117,11 +121,47 @@ STATS_parse_input_command(char *data)
 		}
         break;
 	*/
-
-      //case 'reboot':
-        //watchdog_reboot();
-        //break;
     }
+}
+
+void
+STATS_output_command(uint8_t cmd)
+{
+	switch(cmd){
+		case cmd_start:
+			printf("> \n");
+			break;
+
+		case cmd_stop:
+			printf("= \n");
+			break;
+
+		case app_duration:
+			printf("AD %d\n", MAX_APP_TIME);
+			break;
+		
+		default:
+			printf("Unknown output command \n");
+			break;
+	}
+}
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(bgn_process, ev, data)
+{
+	static struct etimer bgn_timer;
+
+	PROCESS_BEGIN();
+
+	etimer_set(&bgn_timer, BGN_MEASURE_TIME_MS);
+
+	while(1){
+		STATS_update_background_noise();
+
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&bgn_timer));
+		etimer_reset(&bgn_timer);
+	}
+	PROCESS_END();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -131,32 +171,38 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	PROCESS_BEGIN();
 
-	printf(">Starting app! \n");
-	counter_ms = 0;  
+	// Respond to LGTC
+	STATS_output_command(cmd_start);  
 
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
 	STATS_clear_packet_stats();
 	STATS_clear_background_noise();
 
+	// Start measuring BGN
+	process_start(&bgn_process, NULL);
+
+	#if STATS_PING_NBR
 	STATS_setup_ping_reply_callback();
+	#endif
 
-	printf("AD %d\n", (MAX_APP_TIME_MS/1000));
+	// Send app duration to LGTC
+	STATS_output_command(app_duration);
 
-	// Optional: print help into log file
 	STATS_print_help();
 
-	etimer_set(&timer, 1);  //ms = 1, sec = 1000
+	etimer_set(&timer, CLOCK_SECOND);
 
 	while(1)
 	{
-		counter_ms++;
-	#if STATS_PING_NBR
+		counter++;
+
+		#if STATS_PING_NBR
 		uip_ds6_nbr_t *nbr;
 		uip_ipaddr_t *address;
 
 		if(!device_is_root){
-			if((counter_ms % PING_SEND_TIME_MS) == 0){
+			if((counter % PING_SEND_TIME) == 0){
 
 				nbr = uip_ds6_nbr_head();
 
@@ -171,38 +217,24 @@ PROCESS_THREAD(stats_process, ev, data)
 				}
 			}
 		}
-	#endif
-
-	#if STATS_DEBUGG
-		if((counter_ms % (10 * SECOND)) == 0){
-			STATS_print_background_noise();
-		}
-		else if((counter_ms % 500) == 0) {
-			STATS_update_background_noise();
-		}
-	#else
-		if((counter_ms % (BGN_MEASURE_TIME_MS * 100)) == 0){	//TODO: fix - back to 1000
-			STATS_print_background_noise();
-		}
-		else if((counter_ms % BGN_MEASURE_TIME_MS) == 0){
-			STATS_update_background_noise();
-		}
-	#endif
+		#endif
 
 		// PROCESS_PAUSE();
-		// Every 10 seconds print packet statistics and clear the buffer
-		if((counter_ms%(SECOND * 10)) == 0){
+		// Every 10 seconds print statistics and clear the buffer
+		if((counter%10) == 0){
 			STATS_print_packet_stats();
+			STATS_print_background_noise();
 		}
 
 		// After max time send stop command ('=') and print driver statistics
-		if(counter_ms == (MAX_APP_TIME_MS)){
+		if(counter== (MAX_APP_TIME)){
 			STATS_close_app();
 			PROCESS_EXIT();
 		}
 
 		// Wait for the periodic timer to expire and then restart the timer.
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+		//etimer_expiration_time();
 		etimer_reset(&timer);
 	}
 
@@ -295,9 +327,12 @@ STATS_close_app(void)
 {
 	STATS_print_driver_stats();
 
+	#if STATS_PING_NBR
 	printf("Ping replies: %ld, timeout: %ld \n", ping_count, ping_timeout_count);
+	#endif
+
 	// Send '=' cmd to stop the monitor
-	printf("=End monitoring serial port\n");
+	STATS_output_command(cmd_stop);
 
 	// Empty buffers
 	RF2XX_STATS_RESET();
