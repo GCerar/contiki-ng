@@ -36,6 +36,7 @@
 #include "arch/platform/vesna/dev/at86rf2xx/rf2xx.h"
 #include "arch/platform/vesna/dev/at86rf2xx/rf2xx_stats.h"
 #include "net/ipv6/uip.h"
+#include "net/routing/rpl-classic/rpl-private.h"
 
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
@@ -78,6 +79,7 @@ PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
 PROCESS(ping_process, "Pinging process");
 PROCESS(bgn_process, "Background noise process");
+PROCESS(multicast_process, "Multicast process");
 
 AUTOSTART_PROCESSES(&serial_input_process);
 
@@ -173,7 +175,7 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	// Respond to LGTC
 	STATS_output_command(cmd_start);
-	// counter = 0;																							 TODO  
+	// counter = 0;																							 TODO  test
 
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
@@ -211,19 +213,22 @@ PROCESS_THREAD(stats_process, ev, data)
 					//printf("Found nbr at IP:");
 					//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
 
-					address = uip_ds6_nbr_get_ipaddr(nbr);
-					//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbours
+					//address = uip_ds6_nbr_get_ipaddr(nbr);
+					//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbors
 					
-					process_start(&ping_process, address);
+					//process_start(&ping_process, address);
+					process_start(&multicast_process, NULL);
 				}
 			}
 		}
 		#endif
 
+		// Every 1 second print background noise measurements and empty the buffer
+		STATS_print_background_noise();
+
 		// Every 10 seconds print statistics and clear the buffer
 		if((counter % 10) == 0){
 			STATS_print_packet_stats();
-			STATS_print_background_noise();
 		}
 
 		// After max time send stop command ('=') and print driver statistics
@@ -240,69 +245,6 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	PROCESS_END();
 }
-
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(ping_process, ev, data)
-{
-	static struct etimer timeout_timer;
-
-	PROCESS_BEGIN();
-
-	#if STATS_DEBUGG
-		printf("Pinging neighbour: ");
-		uiplib_ipaddr_print(data);
-		printf("\n"); 
-	#endif
-
-	curr_ping_process = PROCESS_CURRENT();
-  	ping_output_func = "ping";
-	ping_time_start = vsnTime_uptimeMS();
-	etimer_set(&timeout_timer, (SECOND));
-	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);	//data is the address
-	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timeout_timer) || ping_output_func == NULL );
-
-	// Timeout
-	if(ping_output_func != NULL){
-		ping_timeout_count++;
-		printf("PT %ld [%ld]\n",ping_timeout_count, ping_time_start);
-		ping_output_func = NULL;
-	} 
-	// Reply received
-	else{
-		ping_count++;
-		printf("PR %ld [%ld - > %ld]\n", ping_count, ping_time_start, ping_time_reply);
-
-		#if STATS_DEBUG
-			printf("Received ping reply from ");
-			uiplib_ipaddr_print(data);
-			printf(", len %u, ttl %u, delay %lu ms\n",
-					ping_datalen, ping_ttl, (1000*(clock_time() - timeout_timer.timer.start))/CLOCK_SECOND);
-		#endif
-	}
-	PROCESS_END();
-}
-
-
-void
-STATS_setup_ping_reply_callback(void)
-{
-	static struct uip_icmp6_echo_reply_notification echo_reply_notification;
-	uip_icmp6_echo_reply_callback_add(&echo_reply_notification, ping_reply_handler);
-}
-
-void
-ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen)
-{
-  if(ping_output_func != NULL) {
-	ping_time_reply = vsnTime_uptimeMS();
-    ping_output_func = NULL;
-    ping_ttl = ttl;
-    ping_datalen = datalen;
-
-    process_poll(curr_ping_process);
-  }
-}
-
 
 /*---------------------------------------------------------------------------*/
 void
@@ -376,3 +318,89 @@ STATS_print_help(void){
 	printf("On the end of file, there is a count of all received and transmited packets. \n");
 	printf("----------------------------------------------------------------------------\n");
 }
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(ping_process, ev, data)
+{
+	static struct etimer timeout_timer;
+
+	PROCESS_BEGIN();
+
+	#if STATS_DEBUGG
+		printf("Pinging neighbour: ");
+		uiplib_ipaddr_print(data);
+		printf("\n"); 
+	#endif
+
+	curr_ping_process = PROCESS_CURRENT();
+  	ping_output_func = "ping";
+	ping_time_start = vsnTime_uptimeMS();
+	etimer_set(&timeout_timer, (SECOND));
+	uip_icmp6_send(data, ICMP6_ECHO_REQUEST, 0, 4);	//data is the address
+	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timeout_timer) || ping_output_func == NULL );
+
+	// Timeout
+	if(ping_output_func != NULL){
+		ping_timeout_count++;
+		printf("PT %ld [%ld]\n",ping_timeout_count, ping_time_start);
+		ping_output_func = NULL;
+	} 
+	// Reply received
+	else{
+		ping_count++;
+		printf("PR %ld [%ld - > %ld]\n", ping_count, ping_time_start, ping_time_reply);
+
+		#if STATS_DEBUG
+			printf("Received ping reply from ");
+			uiplib_ipaddr_print(data);
+			printf(", len %u, ttl %u, delay %lu ms\n",
+					ping_datalen, ping_ttl, (1000*(clock_time() - timeout_timer.timer.start))/CLOCK_SECOND);
+		#endif
+	}
+	PROCESS_END();
+}
+
+
+void
+STATS_setup_ping_reply_callback(void)
+{
+	static struct uip_icmp6_echo_reply_notification echo_reply_notification;
+	uip_icmp6_echo_reply_callback_add(&echo_reply_notification, ping_reply_handler);
+}
+
+void
+ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t datalen)
+{
+  if(ping_output_func != NULL) {
+	ping_time_reply = vsnTime_uptimeMS();
+    ping_output_func = NULL;
+    ping_ttl = ttl;
+    ping_datalen = datalen;
+
+    process_poll(curr_ping_process);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+// Internet Control Messages IPv6 --> icmp6
+// Type 100 is for user experimentation --> ICMP6_PRIV_EXP_100
+// Code --> it doesn't matter
+PROCESS_THREAD(multicast_process, ev, data)	
+{
+	uip_ipaddr_t mc_addr;
+
+	PROCESS_BEGIN();
+
+	#if STATS_DEBUGG
+		printf("Sending broadcast packet... \n");
+	#endif
+
+	uip_create_linklocal_rplnodes_mcast(&mc_addr);
+
+	// addr, type, code, payload length
+    uip_icmp6_send(&mc_addr, ICMP6_PRIV_EXP_100, 0, 0);
+
+	PROCESS_END();
+
+}
+
