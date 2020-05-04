@@ -77,8 +77,8 @@ void ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16
 /*---------------------------------------------------------------------------*/
 PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
-PROCESS(ping_process, "Pinging process");
 PROCESS(bgn_process, "Background noise process");
+PROCESS(ping_process, "Pinging process");
 PROCESS(multicast_process, "Multicast process");
 
 AUTOSTART_PROCESSES(&serial_input_process);
@@ -109,6 +109,7 @@ STATS_input_command(char *data)
         break;
       
       case '=':
+	  	process_exit(&bgn_process);
         process_exit(&stats_process);
         STATS_close_app();
         break;
@@ -224,11 +225,12 @@ PROCESS_THREAD(stats_process, ev, data)
 		#endif
 
 		// Every 1 second print background noise measurements and empty the buffer
-		STATS_print_background_noise();
+		// STATS_print_background_noise();
 
 		// Every 10 seconds print statistics and clear the buffer
 		if((counter % 10) == 0){
 			STATS_print_packet_stats();
+			STATS_print_background_noise();
 		}
 
 		// After max time send stop command ('=') and print driver statistics
@@ -384,7 +386,7 @@ ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t da
 /*---------------------------------------------------------------------------*/
 // Internet Control Messages IPv6 --> icmp6
 // Type 100 is for user experimentation --> ICMP6_PRIV_EXP_100
-// Code --> it doesn't matter
+// Code --> I think that it doesn't matter for us, so we put 0 there
 PROCESS_THREAD(multicast_process, ev, data)	
 {
 	uip_ipaddr_t mc_addr;
