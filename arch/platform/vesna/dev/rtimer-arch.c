@@ -54,7 +54,7 @@ void rtimer_arch_init(void) {
     // TIM5 clock enable
     RCC_APB1PeriphClockCmd(RTIMER_APB1, ENABLE);
 
-#if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
+/*#if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
     TIM_TimeBaseInitTypeDef externalTimerInitStructure = {
         .TIM_Prescaler = 206 - 1,       // 0 = run @ 13.5MHz, 206 = run @ 65533.98 Hz
         .TIM_CounterMode = TIM_CounterMode_Up,
@@ -83,6 +83,7 @@ void rtimer_arch_init(void) {
     // Setup timer trigger as external clock source
     TIM_TIxExternalClockConfig(RTIMER_TIMx, TIM_TIxExternalCLK1Source_TI1, TIM_ICPolarity_Falling, 0x0);
 #else
+*/
     TIM_TimeBaseInitTypeDef timerInitStructure = {
         .TIM_Prescaler = 977 - 1,       // 0 = run @ 64MHz, 977 = run @ 65506 Hz
         .TIM_CounterMode = TIM_CounterMode_Up,
@@ -92,7 +93,7 @@ void rtimer_arch_init(void) {
     };
     // Initialize timer
     TIM_TimeBaseInit(RTIMER_TIMx, &timerInitStructure);
-#endif
+//#endif
 
     // Set initial value (value could be random at power on)
     TIM_SetCounter(RTIMER_TIMx, 0);

@@ -127,11 +127,12 @@ rf2xx_initHW(void)
 	vsnSPI_initHW(SPI_PORT);
 
     // Configure CC1101 clock --> for rTimer trigger 
+    /*
     #if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
-        printf("Here\n");
         configure_cc1101(); // TODO - we dont yet have radio chip value here, so we dont know witch version of radio is on ISMTV board
     #endif
-
+    */
+   
     // Complete initialization of SPI for rf2xx
     vsnSPI_initCommonStructure(
         rf2xxSPI,
