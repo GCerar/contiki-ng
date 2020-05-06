@@ -15,6 +15,6 @@
 
 #define STATS_DEBUGG                               (0)
 
-#define STATS_PING_NBR                             (1)
+#define STATS_PING_NBR                             (0)
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE (uint8_t[]){ 15, 20, 26 }

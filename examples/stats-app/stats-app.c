@@ -63,6 +63,9 @@ static uint32_t ping_time_reply;
 
 // Serial commands
 enum STATS_commands {cmd_start, cmd_stop, app_duration};
+
+// Multicast enable
+static uint8_t send_multicast = 0;
 /*---------------------------------------------------------------------------*/
 void STATS_print_help(void);
 void STATS_input_command(char *data);
@@ -99,20 +102,26 @@ STATS_input_command(char *data)
 {
     char cmd = data[0];
     switch(cmd){
-      case '>':
-        process_start(&stats_process, NULL);
-        break;
+      	case '>':
+			process_start(&stats_process, NULL);
+			break;
       
-      case '*':
-	  	device_is_root = 1;
-        STATS_set_device_as_root();
-        break;
+     	case '*':
+			device_is_root = 1;
+			STATS_set_device_as_root();
+			break;
       
-      case '=':
-	  	process_exit(&bgn_process);
-        process_exit(&stats_process);
-        STATS_close_app();
-        break;
+      	case '=':
+			process_exit(&bgn_process);
+			process_exit(&stats_process);
+			STATS_close_app();
+			break;
+
+		case '#':
+			send_multicast = 1;
+			break;
+
+
 
     /*  case '!':
 	  // Example usage (not tested yet): ! fe80::212:4b00:6:1234
@@ -172,11 +181,15 @@ PROCESS_THREAD(stats_process, ev, data)
 {
 	static struct etimer timer;
 
+	static uip_ipaddr_t mc_addr;
+	static uint32_t mc_start_counter = 0;
+	static uint8_t mc_in_progress = 0;
+
 	PROCESS_BEGIN();
 
 	// Respond to LGTC
 	STATS_output_command(cmd_start);
-	// counter = 0;																							 TODO  test
+	// counter = 0;				 TODO  test
 
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
@@ -189,6 +202,9 @@ PROCESS_THREAD(stats_process, ev, data)
 	#if STATS_PING_NBR
 	STATS_setup_ping_reply_callback();
 	#endif
+
+	//#if STATS_SEND_MULTICAST
+	uip_create_linklocal_rplnodes_mcast(&mc_addr);
 
 	// Send app duration to LGTC
 	STATS_output_command(app_duration);
@@ -214,15 +230,59 @@ PROCESS_THREAD(stats_process, ev, data)
 					//printf("Found nbr at IP:");
 					//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
 
-					//address = uip_ds6_nbr_get_ipaddr(nbr);
+					address = uip_ds6_nbr_get_ipaddr(nbr);
 					//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbors
 					
-					//process_start(&ping_process, address);
-					process_start(&multicast_process, NULL);
+					process_start(&ping_process, address);
 				}
 			}
 		}
 		#endif
+
+		//#if STATS_SEND_MULTICAST
+
+		// Root is first
+		if(device_is_root)
+		{
+			// For 10min send broadcast packets, then stop
+			if(counter < (60*1))
+			{
+				// Every 3 seconds send multicast packet
+				if(counter % 3 == 0)
+				{
+					uip_icmp6_send(&mc_addr, ICMP6_PRIV_EXP_100, 0, 0);	
+				}
+			}
+		}
+
+		// Then are the nodes
+		if(send_multicast)
+		{
+			if(!mc_in_progress)
+			{
+				printf("This device will now START sending BC packets...\n");
+				mc_start_counter = counter;
+				mc_in_progress = 1;
+			}
+
+			if((counter - mc_start_counter) > (60 * 1))
+			{
+				send_multicast = 0;
+				mc_in_progress = 0;
+				printf("This device will now STOP sending BC packets...\n");
+			}
+
+
+			// Every 3 seconds send multicast packet
+			if(counter % 3 == 0)
+			{
+				uip_icmp6_send(&mc_addr, ICMP6_PRIV_EXP_100, 0, 0);	
+			}
+		}
+		//#endif
+
+
+
 
 		// Every 1 second print background noise measurements and empty the buffer
 		// STATS_print_background_noise();
