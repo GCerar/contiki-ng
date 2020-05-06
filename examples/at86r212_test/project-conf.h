@@ -4,7 +4,7 @@
 #define LOG_CONF_LEVEL_TCPIP                       LOG_LEVEL_DBG
 #define LOG_CONF_LEVEL_MAC                         LOG_LEVEL_DBG
 #define LOG_CONF_LEVEL_FRAMER                      LOG_LEVEL_DBG
-#define LOG_LEVEL_RF2XX                            LOG_LEVEL_DBG
+#define LOG_CONF_LEVEL_RF2XX                       LOG_LEVEL_DBG
 
 
 

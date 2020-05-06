@@ -128,7 +128,8 @@ rf2xx_initHW(void)
 
     // Configure CC1101 clock --> for rTimer trigger 
     #if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
-        configure_cc1101();
+        printf("Here\n");
+        configure_cc1101(); // TODO - we dont yet have radio chip value here, so we dont know witch version of radio is on ISMTV board
     #endif
 
     // Complete initialization of SPI for rf2xx
@@ -203,7 +204,7 @@ rf2xx_reset(void)
 
         // Match JEDEC manufacturer ID
         if (regRead(RG_MAN_ID_0) == RF2XX_MAN_ID_0 && regRead(RG_MAN_ID_1) == RF2XX_MAN_ID_1) {
-            LOG_DBG("JEDEC ID matches Atmel\n");
+            
 
             // Match known radio (and sanitize radio type)
             partNum = regRead(RG_PART_NUM);
@@ -213,6 +214,7 @@ rf2xx_reset(void)
                 case RF2XX_AT86RF230:
                 case RF2XX_AT86RF212:
                     rf2xxChip = partNum;
+                    LOG_DBG("JEDEC ID matches Atmel - Chip %d\n", rf2xxChip);
                 default:
                     break;
             }

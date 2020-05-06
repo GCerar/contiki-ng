@@ -41,10 +41,10 @@
     Internal clock of STM32 is drifting a lot - too much for precise TSCH operations. This presents a 
     problem, because our devices are mising the slots. So we have 2 options:
 
-    1) When we are using SNR board, we can use AT86RF2xx oscilator clock as main clock for STM32, which has
+    1) When we are using SNR board, we can use AT86RF2xx oscillator clock as main clock for STM32, which has
        very low drift (configured in platform.c).
 
-    2) When we are using ISMTV board, AT86RF2xx CLK pin is not connected anywhere. But we can use oscilator
+    2) When we are using ISMTV board, AT86RF2xx CLK pin is not connected anywhere. But we can use oscillator
        of CC1101 chip, which is connected to TIM5 Channel 3 (PA2 on STM32). So only TIM5 will have external 
        clock source, which is not drifting.
 */
