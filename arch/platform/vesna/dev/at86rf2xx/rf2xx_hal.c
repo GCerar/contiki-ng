@@ -127,11 +127,9 @@ rf2xx_initHW(void)
 	vsnSPI_initHW(SPI_PORT);
 
     // Configure CC1101 clock --> for rTimer trigger 
-    /*
     #if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
-        configure_cc1101(); // TODO - we dont yet have radio chip value here, so we dont know witch version of radio is on ISMTV board
+        configure_cc1101();
     #endif
-    */
 
     // Complete initialization of SPI for rf2xx
     vsnSPI_initCommonStructure(
@@ -205,7 +203,7 @@ rf2xx_reset(void)
 
         // Match JEDEC manufacturer ID
         if (regRead(RG_MAN_ID_0) == RF2XX_MAN_ID_0 && regRead(RG_MAN_ID_1) == RF2XX_MAN_ID_1) {
-            
+            LOG_DBG("JEDEC ID matches Atmel\n");
 
             // Match known radio (and sanitize radio type)
             partNum = regRead(RG_PART_NUM);
@@ -215,7 +213,6 @@ rf2xx_reset(void)
                 case RF2XX_AT86RF230:
                 case RF2XX_AT86RF212:
                     rf2xxChip = partNum;
-                    LOG_DBG("JEDEC ID matches Atmel - Chip %d\n", rf2xxChip);
                 default:
                     break;
             }
@@ -243,13 +240,6 @@ rf2xx_reset(void)
 
 	// Enable RX_SAFE mode to protect buffer while reading it
 	bitWrite(SR_RX_SAFE_MODE, 1);
-
-    // Set SUB_MODE to 1 or 250 kbit/s datarate
-    bitWrite(RG_TRX_CTRL_2, 0x04, 2, 1);    // CHANGE
-    // Set OQPSK mode to 1 (0 is BPSK)
-    bitWrite(RG_TRX_CTRL_2, 0x08, 3, 1); 
-    
-    printf("Reg: %d \n", regRead(RG_TRX_CTRL_2));
 
 	// Set same value for RF231 (default=0) and RF233 (default=1)
 	bitWrite(SR_IRQ_MASK_MODE, 1);
