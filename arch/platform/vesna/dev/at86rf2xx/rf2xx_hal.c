@@ -132,7 +132,7 @@ rf2xx_initHW(void)
         configure_cc1101(); // TODO - we dont yet have radio chip value here, so we dont know witch version of radio is on ISMTV board
     #endif
     */
-   
+
     // Complete initialization of SPI for rf2xx
     vsnSPI_initCommonStructure(
         rf2xxSPI,
@@ -243,6 +243,9 @@ rf2xx_reset(void)
 
 	// Enable RX_SAFE mode to protect buffer while reading it
 	bitWrite(SR_RX_SAFE_MODE, 1);
+
+    // Set SUB_MODE to 1 or 250 kbit/s datarate
+    bitWrite(RG_TRX_CTRL_2, 0x04, 2, 1);    // CHANGE
 
 	// Set same value for RF231 (default=0) and RF233 (default=1)
 	bitWrite(SR_IRQ_MASK_MODE, 1);

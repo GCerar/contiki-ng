@@ -28,6 +28,7 @@
 #define RTIMER_IRQn TIM5_IRQn
 #define RTIMER_APB1 RCC_APB1Periph_TIM5
 
+// CHANGE
 /*
     Contiki(-ng) uses several timers. We implemented rtimer (r is for real-time)
     using TIM5 general purpose timer.
