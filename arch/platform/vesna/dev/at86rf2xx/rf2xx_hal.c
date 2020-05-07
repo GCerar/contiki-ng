@@ -246,6 +246,10 @@ rf2xx_reset(void)
 
     // Set SUB_MODE to 1 or 250 kbit/s datarate
     bitWrite(RG_TRX_CTRL_2, 0x04, 2, 1);    // CHANGE
+    // Set OQPSK mode to 1 (0 is BPSK)
+    bitWrite(RG_TRX_CTRL_2, 0x08, 3, 1); 
+    
+    printf("Reg: %d \n", regRead(RG_TRX_CTRL_2));
 
 	// Set same value for RF231 (default=0) and RF233 (default=1)
 	bitWrite(SR_IRQ_MASK_MODE, 1);
