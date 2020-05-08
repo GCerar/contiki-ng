@@ -173,6 +173,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	static struct etimer timer;
 
 	static uip_ipaddr_t mc_addr;
+	static uint32_t vesna_up_time;
 
 	PROCESS_BEGIN();
 
@@ -228,7 +229,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		}
 		#endif
 
-		// Root sends multicast packets every 3 seconds or 15min
+		// Root sends multicast packets every 3 seconds for 15 min
 		if(device_is_root)
 		{
 			// For 10min send broadcast packets, then stop
@@ -236,9 +237,10 @@ PROCESS_THREAD(stats_process, ev, data)
 			{
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
-				{
-					uip_icmp6_send(&mc_addr, ICMP6_ECHO_REQUEST, 0, 0);	
-					printf("MC sent [%ld ms]\n", vsnTime_uptimeMS());
+				{	
+					vesna_up_time = vsnTime_uptimeMS();
+					uip_icmp6_send(&mc_addr, ICMP6_ECHO_REQUEST, 0, 4);	
+					printf("MC sent [%ld ms]\n", vesna_up_time);
 				}
 			}
 		}
