@@ -64,8 +64,6 @@ static uint32_t ping_time_reply;
 // Serial commands
 enum STATS_commands {cmd_start, cmd_stop, app_duration};
 
-// Multicast enable
-static uint8_t send_multicast = 0;
 /*---------------------------------------------------------------------------*/
 void STATS_print_help(void);
 void STATS_input_command(char *data);
@@ -116,11 +114,6 @@ STATS_input_command(char *data)
 			process_exit(&stats_process);
 			STATS_close_app();
 			break;
-
-		case '#':
-			send_multicast = 1;
-			break;
-
 
 
     /*  case '!':
@@ -182,8 +175,6 @@ PROCESS_THREAD(stats_process, ev, data)
 	static struct etimer timer;
 
 	static uip_ipaddr_t mc_addr;
-	static uint32_t mc_start_counter = 0;
-	static uint8_t mc_in_progress = 0;
 
 	PROCESS_BEGIN();
 
@@ -239,13 +230,11 @@ PROCESS_THREAD(stats_process, ev, data)
 		}
 		#endif
 
-		//#if STATS_SEND_MULTICAST
-
-		// Root is first
+		// Root sends multicast packets every 3 seconds or 15min
 		if(device_is_root)
 		{
 			// For 10min send broadcast packets, then stop
-			if(counter < (60*1))
+			if((counter > (60*5)) && (counter < (60*20)))
 			{
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
@@ -254,35 +243,6 @@ PROCESS_THREAD(stats_process, ev, data)
 				}
 			}
 		}
-
-		// Then are the nodes
-		if(send_multicast)
-		{
-			if(!mc_in_progress)
-			{
-				printf("This device will now START sending BC packets...\n");
-				mc_start_counter = counter;
-				mc_in_progress = 1;
-			}
-
-			if((counter - mc_start_counter) > (60 * 1))
-			{
-				send_multicast = 0;
-				mc_in_progress = 0;
-				printf("This device will now STOP sending BC packets...\n");
-			}
-
-
-			// Every 3 seconds send multicast packet
-			if(counter % 3 == 0)
-			{
-				uip_icmp6_send(&mc_addr, ICMP6_PRIV_EXP_100, 0, 0);	
-			}
-		}
-		//#endif
-
-
-
 
 		// Every 1 second print background noise measurements and empty the buffer
 		// STATS_print_background_noise();
