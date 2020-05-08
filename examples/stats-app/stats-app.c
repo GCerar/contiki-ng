@@ -41,7 +41,7 @@
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME  		(60 * 10) 
+#define MAX_APP_TIME  		(60 * 5) 
 #define BGN_MEASURE_TIME_MS	(100)
 #define PING_SEND_TIME		(3)
 
@@ -110,8 +110,6 @@ STATS_input_command(char *data)
 			break;
       
       	case '=':
-			process_exit(&bgn_process);
-			process_exit(&stats_process);
 			STATS_close_app();
 			break;
 
@@ -234,12 +232,13 @@ PROCESS_THREAD(stats_process, ev, data)
 		if(device_is_root)
 		{
 			// For 10min send broadcast packets, then stop
-			if((counter > (60*5)) && (counter < (60*20)))
+			if((counter > (60*1)) && (counter < (60*3))
 			{
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
 				{
-					uip_icmp6_send(&mc_addr, ICMP6_PRIV_EXP_100, 0, 0);	
+					uip_icmp6_send(&mc_addr, ICMP6_ECHO_REQUEST, 0, 0);	
+					printf("Multicast sent\n");
 				}
 			}
 		}
@@ -289,6 +288,9 @@ STATS_set_device_as_root(void)
 void
 STATS_close_app(void)
 {
+	process_exit(&bgn_process);
+	process_exit(&stats_process);
+
 	STATS_print_driver_stats();
 
 	#if STATS_PING_NBR
