@@ -232,13 +232,13 @@ PROCESS_THREAD(stats_process, ev, data)
 		if(device_is_root)
 		{
 			// For 10min send broadcast packets, then stop
-			if((counter > (60*1)) && (counter < (60*3))
+			if((counter > (60*1)) && (counter < (60*3)))
 			{
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
 				{
 					uip_icmp6_send(&mc_addr, ICMP6_ECHO_REQUEST, 0, 0);	
-					printf("Multicast sent\n");
+					printf("MC sent [%ld ms]\n", vsnTime_uptimeMS());
 				}
 			}
 		}
