@@ -42,7 +42,7 @@
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
 #define MAX_APP_TIME  		(60 * 20) 
-#define BGN_MEASURE_TIME_MS	(10)
+#define BGN_MEASURE_TIME_MS	(100)
 #define PING_SEND_TIME		(3)
 
 // Stats application seconds counter
