@@ -41,7 +41,7 @@
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME  		(60 * 20) 
+#define MAX_APP_TIME  		(60 * 60) 
 #define BGN_MEASURE_TIME_MS	(100)
 #define PING_SEND_TIME		(3)
 
@@ -233,7 +233,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		if(device_is_root)
 		{
 			// After 5 min send broadcast packets, then stop after 20 min
-			if((counter > (60 * 5)) && (counter < (60 * 20)))
+			if((counter > (60 * 5)) && (counter < MAX_APP_TIME))
 			{
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
