@@ -42,7 +42,7 @@
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
 #define MAX_APP_TIME  		(60 * 100) 
-#define BGN_MEASURE_TIME_MS	(100)
+#define BGN_MEASURE_TIME_MS	(10)
 #define PING_SEND_TIME		(3)
 
 // Stats application seconds counter
@@ -230,7 +230,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		#endif
 
 		// Root sends multicast packets every 3 seconds for 15 min
-		if(device_is_root)
+		/*if(device_is_root)
 		{
 			// After 5 min send broadcast packets, then stop after 20 min
 			if((counter > (60 * 5)) && (counter < (60 * 20)))
@@ -243,7 +243,7 @@ PROCESS_THREAD(stats_process, ev, data)
 					printf("MC sent [%ld ms]\n", vesna_up_time);
 				}
 			}
-		}
+		}*/
 
 		// Every 1 second print background noise measurements and empty the buffer
 		// STATS_print_background_noise();
