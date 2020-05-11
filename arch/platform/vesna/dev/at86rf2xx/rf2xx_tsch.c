@@ -8,7 +8,7 @@ const tsch_timeslot_timing_usec tsch_timeslot_timing_rf2xx_10000us_250kbps = {
    2120, // TxOffset 
   (2120 - (TSCH_CONF_RX_WAIT / 2)), // RxOffset 
     1000, // RxAckDelay      
-   2000, // TxAckDelay (default: 1000)  
+   1800, // TxAckDelay (default: 1000)  
   TSCH_CONF_RX_WAIT, // RxWait 
    3600, // AckWait (default: 400)
     192, // RxTx 
