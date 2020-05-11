@@ -78,9 +78,9 @@ void ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16
 /*---------------------------------------------------------------------------*/
 PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
-PROCESS(bgn_process, "Background noise process");
+//PROCESS(bgn_process, "Background noise process");
 PROCESS(ping_process, "Pinging process");
-PROCESS(multicast_process, "Multicast process");
+//PROCESS(multicast_process, "Multicast process");
 
 AUTOSTART_PROCESSES(&serial_input_process);
 
@@ -150,6 +150,7 @@ STATS_output_command(uint8_t cmd)
 }
 
 /*---------------------------------------------------------------------------*/
+/*
 PROCESS_THREAD(bgn_process, ev, data)
 {
 	static struct etimer bgn_timer;
@@ -166,7 +167,7 @@ PROCESS_THREAD(bgn_process, ev, data)
 	}
 	PROCESS_END();
 }
-
+*/
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(stats_process, ev, data)
 {
@@ -186,48 +187,24 @@ PROCESS_THREAD(stats_process, ev, data)
 	STATS_clear_packet_stats();
 	STATS_clear_background_noise();
 
-	// Start measuring BGN
-	process_start(&bgn_process, NULL);
-
 	#if STATS_PING_NBR
 	STATS_setup_ping_reply_callback();
 	#endif
 
 	//#if STATS_SEND_MULTICAST
-	uip_create_linklocal_rplnodes_mcast(&mc_addr);
+	//uip_create_linklocal_rplnodes_mcast(&mc_addr);
 
 	// Send app duration to LGTC
 	STATS_output_command(app_duration);
 
 	STATS_print_help();
 
-	etimer_set(&timer, CLOCK_SECOND);
+	etimer_set(&timer, 1);
 
 	while(1)
 	{
 		counter++;
 
-		#if STATS_PING_NBR
-		uip_ds6_nbr_t *nbr;
-		uip_ipaddr_t *address;
-
-		if(!device_is_root){
-			if((counter % PING_SEND_TIME) == 0){
-
-				nbr = uip_ds6_nbr_head();
-
-				if(nbr != NULL){
-					//printf("Found nbr at IP:");
-					//uiplib_ipaddr_print(uip_ds6_nbr_get_ipaddr(nbr));
-
-					address = uip_ds6_nbr_get_ipaddr(nbr);
-					//nbr = uip_ds6_nbr_next(nbr); - if there are more neighbors
-					
-					process_start(&ping_process, address);
-				}
-			}
-		}
-		#endif
 
 		// Root sends multicast packets every 3 seconds for 15 min
 		/*if(device_is_root)
@@ -244,18 +221,22 @@ PROCESS_THREAD(stats_process, ev, data)
 				}
 			}
 		}*/
-
-		// Every 1 second print background noise measurements and empty the buffer
-		// STATS_print_background_noise();
+		
+		// Every 10ms
+		if((counter % (1000 * 10)) == 0){
+			STATS_print_background_noise();
+		}
+		else if(counter % 10 == 0){
+			STATS_update_background_noise();
+		}
 
 		// Every 10 seconds print statistics and clear the buffer
-		if((counter % 10) == 0){
+		if((counter % (1000 * 10)) == 0){
 			STATS_print_packet_stats();
-			STATS_print_background_noise();
 		}
 
 		// After max time send stop command ('=') and print driver statistics
-		if(counter == MAX_APP_TIME){
+		if(counter >= MAX_APP_TIME){
 			STATS_close_app();
 			PROCESS_EXIT();
 		}
@@ -290,7 +271,6 @@ STATS_set_device_as_root(void)
 void
 STATS_close_app(void)
 {
-	process_exit(&bgn_process);
 	process_exit(&stats_process);
 
 	STATS_print_driver_stats();
@@ -411,6 +391,7 @@ ping_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data, uint16_t da
 // Internet Control Messages IPv6 --> icmp6
 // Type 100 is for user experimentation --> ICMP6_PRIV_EXP_100
 // Code --> I think that it doesn't matter for us, so we put 0 there
+/*
 PROCESS_THREAD(multicast_process, ev, data)	
 {
 	uip_ipaddr_t mc_addr;
@@ -429,4 +410,4 @@ PROCESS_THREAD(multicast_process, ev, data)
 	PROCESS_END();
 
 }
-
+*/
