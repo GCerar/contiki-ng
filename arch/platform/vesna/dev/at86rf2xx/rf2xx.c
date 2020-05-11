@@ -564,12 +564,12 @@ get_value(radio_param_t param, radio_value_t *value)
 			return RSSI_BASE_VAL + 2 * (radio_value_t)bitRead(SR_CCA_ED_THRES);
 
 		case RADIO_PARAM_RSSI:
-            LOG_DBG("Request current RSSI\n");
+            //LOG_DBG("Request current RSSI\n");
 			*value = (3 * ((radio_value_t)bitRead(SR_RSSI) - 1) + RSSI_BASE_VAL);
 			return RADIO_RESULT_OK;
 
         case RADIO_PARAM_LAST_RSSI:
-            LOG_DBG("Request last RSSI\n");
+            //LOG_DBG("Request last RSSI\n");
             *value = (radio_value_t)rxFrame.rssi;
             return RADIO_RESULT_OK;
 

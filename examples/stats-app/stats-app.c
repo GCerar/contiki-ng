@@ -41,8 +41,8 @@
 /*---------------------------------------------------------------------------*/
 // Timing defines for appliaction
 #define SECOND 		  		(1000)
-#define MAX_APP_TIME  		(60 * 20) 
-#define BGN_MEASURE_TIME_MS	(10)
+#define MAX_APP_TIME  		(60 * 100) 
+#define BGN_MEASURE_TIME_MS	(100)
 #define PING_SEND_TIME		(3)
 
 // Stats application seconds counter
@@ -179,7 +179,7 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	// Respond to LGTC
 	STATS_output_command(cmd_start);
-	// counter = 0;				 TODO  test
+	counter = 0;
 
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
