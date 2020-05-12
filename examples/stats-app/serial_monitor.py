@@ -227,7 +227,7 @@ startTime = timer()
 elapsedMin = 0
 
 try:
-    while(true):    #while(line <= LINES_TO_READ): 
+    while(True):    #while(line <= LINES_TO_READ): 
 
         # Measure approoooximate elapsed time - just for a feeling 
         if((timer() - startTime) > 60):
