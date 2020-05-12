@@ -36,6 +36,7 @@
 #include "arch/platform/vesna/dev/at86rf2xx/rf2xx.h"
 #include "arch/platform/vesna/dev/at86rf2xx/rf2xx_stats.h"
 #include "net/ipv6/uip.h"
+#include "net/routing/rpl-classic/rpl-private.h"
 
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
@@ -43,6 +44,8 @@
 #define MAX_APP_TIME  (60 * 5) 
 
 uint32_t counter = 0;
+
+uint8_t device_is_root = 0;
 
 enum STATS_commands {cmd_start, cmd_stop, app_duration};
 /*---------------------------------------------------------------------------*/
@@ -81,6 +84,7 @@ STATS_input_command(char *data){
         break;
       
       case '*':
+	  	device_is_root = 1;
         STATS_set_device_as_root();
         break;
       
@@ -139,17 +143,21 @@ PROCESS_THREAD(stats_process, ev, data)
 {
 	static struct etimer timer;
 
+	static uip_ipaddr_t mc_addr;
+
 	PROCESS_BEGIN();
 
 	// Respond to LGTC
 	STATS_output_command(cmd_start);
-	
+
 	counter = 0;  
 
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
 	STATS_clear_packet_stats();
 	STATS_clear_background_noise();
+
+	uip_create_linklocal_rplnodes_mcast(&mc_addr);
 
 	// Send app duration to LGTC
 	STATS_output_command(app_duration);
@@ -160,6 +168,18 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	while(1) {
 		counter++;
+
+		// If root
+		if(device_is_root)
+		{
+			if(counter >= 60*5){
+				// Every 3 seconds send multicast packet
+				if(counter % 3 == 0)
+				{
+					uip_icmp6_send(&mc_addr, ICMP6_ECHO_REQUEST, 0, 0);	
+				}
+			}
+		}
 
 		if((counter % 10) == 0){
 			STATS_print_background_noise();
@@ -216,6 +236,7 @@ STATS_close_app(void){
 	if(NETSTACK_ROUTING.node_is_root()){
 		NETSTACK_ROUTING.leave_network();
 	}
+	device_is_root = 0;
 }
 
 /*---------------------------------------------------------------------------*/
