@@ -39,7 +39,8 @@
 
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
-#define MAX_APP_TIME  (SECOND * 60 * 60) 
+#define BGN_MEASURE_TIME_MS (10)
+#define MAX_APP_TIME  (60 * 60) 
 
 uint32_t counter = 0;
 
@@ -54,7 +55,7 @@ void STATS_close_app(void);
 /*---------------------------------------------------------------------------*/
 PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
-//PROCESS(ping_process, "Pinging process");
+PROCESS(bgn_process, "Background noise process");
 
 AUTOSTART_PROCESSES(&serial_input_process);
 
@@ -76,6 +77,7 @@ STATS_input_command(char *data){
     switch(cmd){
       case '>':
         process_start(&stats_process, NULL);
+		process_start(&bgn_process, NULL);
         break;
       
       case '*':
@@ -105,13 +107,31 @@ STATS_output_command(uint8_t cmd)
 			break;
 
 		case app_duration:
-			printf("AD %d\n", (MAX_APP_TIME/1000));
+			printf("AD %d\n", (MAX_APP_TIME));
 			break;
 		
 		default:
 			printf("Unknown output command \n");
 			break;
 	}
+}
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(bgn_process, ev, data)
+{
+	static struct etimer bgn_timer;
+
+	PROCESS_BEGIN();
+
+	etimer_set(&bgn_timer, BGN_MEASURE_TIME_MS);
+
+	while(1){
+		STATS_update_background_noise();
+
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&bgn_timer));
+		etimer_reset(&bgn_timer);
+	}
+	PROCESS_END();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -123,6 +143,7 @@ PROCESS_THREAD(stats_process, ev, data)
 
 	// Respond to LGTC
 	STATS_output_command(cmd_start);
+	
 	counter = 0;  
 
 	// Empty buffers if they have some values from before
@@ -130,23 +151,21 @@ PROCESS_THREAD(stats_process, ev, data)
 	STATS_clear_packet_stats();
 	STATS_clear_background_noise();
 
+	// Send app duration to LGTC
 	STATS_output_command(app_duration);
 
-	// Optional: print help into log file
 	STATS_print_help();
 
-	etimer_set(&timer, 1);  //ms = 1, sec = 1000
+	etimer_set(&timer, SECOND);
 
 	while(1) {
 		counter++;
 
-		if((counter%(10 * SECOND)) == 0){
+		if((counter % 10) == 0){
 			STATS_print_background_noise();
 			STATS_print_packet_stats();
 		}
-		else if((counter % 10) == 0) {
-			STATS_update_background_noise();
-		}
+		
 
 		// After max time send stop command ('=') and print driver statistics
 		if(counter == (MAX_APP_TIME)){
@@ -180,6 +199,8 @@ STATS_set_device_as_root(void){
 /*---------------------------------------------------------------------------*/
 void
 STATS_close_app(void){
+
+	process_exit(&bgn_process);
 
 	STATS_print_driver_stats();
 	
