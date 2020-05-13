@@ -15,7 +15,7 @@ from timeit import default_timer as timer
 LINES_TO_READ = 2000
 MAX_APP_TIME  = 1200
 
-DEFAULT_FILE_NAME = "rf2xx_stats.txt"
+DEFAULT_FILE_NAME = "node_stats.txt"
 
 BASEPORT = "/dev/ttyS"
 BAUD = 115200

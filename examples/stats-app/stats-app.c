@@ -41,7 +41,7 @@
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
 #define BGN_MEASURE_TIME_MS (10)
-#define MAX_APP_TIME  (60 * 5) 
+#define MAX_APP_TIME  (60 * 100) 
 
 uint32_t counter = 0;
 
@@ -144,6 +144,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	static struct etimer timer;
 
 	static uip_ipaddr_t mc_addr;
+	uint32_t vesna_up_time;
 
 	PROCESS_BEGIN();
 
@@ -176,14 +177,16 @@ PROCESS_THREAD(stats_process, ev, data)
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
 				{
+					vesna_up_time = vsnTime_uptimeMS();
 					uip_icmp6_send(&mc_addr, ICMP6_ECHO_REQUEST, 0, 0);	
+					printf("MC sent [%ld ms] \n", vesna_up_time);
 				}
 			}
 		}
 
 		if((counter % 10) == 0){
-			STATS_print_background_noise();
 			STATS_print_packet_stats();
+			STATS_print_background_noise();
 		}
 		
 
