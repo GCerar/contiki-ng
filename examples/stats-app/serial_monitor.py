@@ -228,14 +228,18 @@ if(str(id[0])== "Device ID"):
 line = 1
 startTime = timer()
 elapsedMin = 0
+timeoutCnt = 0
 
 try:
     while(True):    #while(line <= LINES_TO_READ): 
         
         # Measure approximate elapsed time - just for a feeling (+- 10s)
-        if((timer() - startTime) > 60):
+        if((timer() - startTime) > 59):
             elapsedMin += 1
             startTime = timer()
+            #print(timer() - startTime)
+            #print(timer() - startTime - 59)
+            #startTime = timer() + (timer() - startTime - 59)
 
         # Failsafe mechanism - if Vesna for some reason stops responding 
         # So it didn't sent stop command 3min after MAX_APP_TIME, stop the monitor
@@ -260,11 +264,14 @@ try:
             # Store value into file
             monitor.store_to_file(value)
 
-            # Update status line in terminal
-            print("Line: " + str(line) + " (~ " + str(elapsedMin) + "|" + 
-                             str(int(MAX_APP_TIME/60)) + " min)", end="\r")
-
             line += 1
+        else:
+            timeoutCnt += 1
+            print("Serial timeout occurred: " + str(timeoutCnt))
+
+        # Update status line in terminal
+        print("Line: " + str(line) + " (~ " + str(elapsedMin) + "|" + 
+        str(int(MAX_APP_TIME/60)) + " min)", end="\r")
     
     print("")
     print("Done!..Exiting serial monitor")
