@@ -104,6 +104,9 @@ class serial_monitor():
         data = data.decode("UTF-8")
         self.file.write(str(data))
 
+    def store_str_to_file(self,string):
+        self.file.write("[" + str(datetime.now().time())+"]: ")
+        self.file.write(string)
 
     def rename_file(self, name):
         os.rename(DEFAULT_FILE_NAME, DEFAULT_FILE_NAME[:-4] + 
@@ -133,7 +136,7 @@ parser.add_argument("-o",
 parser.add_argument("-p", 
                     "--port",   
                     help="""select serial port [ttyUSBx]...if no port 
-                    given, program will find it automaticly""",
+                    given, program will find it automatically""",
                     type=str, 
                     required=False)
 parser.add_argument("-r",
@@ -228,11 +231,20 @@ elapsedMin = 0
 
 try:
     while(True):    #while(line <= LINES_TO_READ): 
-
-        # Measure approoooximate elapsed time - just for a feeling 
+        
+        # Measure approximate elapsed time - just for a feeling (+- 10s)
         if((timer() - startTime) > 60):
             elapsedMin += 1
             startTime = timer()
+
+        # Failsafe mechanism - if Vesna for some reason stops responding 
+        # So it didn't sent stop command 3min after MAX_APP_TIME, stop the monitor
+        if elapsedMin > ((MAX_APP_TIME/60) + 2):
+            print("\n \n Vesna must have crashed... :( \n \n")
+            # add a comment that Vesna didn't respond into text file
+            monitor.store_str_to_file("""\n \n ERROR! \n Vesna has crashed durring application. 
+                                    No stop command found 3min after end of application!""")
+            break
         
         # Read one line (until \n char)
         value = monitor.read_line()
