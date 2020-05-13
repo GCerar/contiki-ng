@@ -41,7 +41,7 @@
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
 #define BGN_MEASURE_TIME_MS (10)
-#define MAX_APP_TIME  (60 * 100) 
+#define MAX_APP_TIME  (60 * 15) 
 
 uint32_t counter = 0;
 
@@ -173,7 +173,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		// If root
 		if(device_is_root)
 		{
-			if(counter >= 60*5){
+			if(counter > 60 * 5){
 				// Every 3 seconds send multicast packet
 				if(counter % 3 == 0)
 				{
