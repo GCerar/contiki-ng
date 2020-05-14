@@ -13,7 +13,7 @@
 #define RF2XX_STATS_RINGBUF_NOISE_SIZE 	(1001)
 
 //TODO
-//#if RF2XX_STATS
+//#if RF2XX_PACKET_STATS
 
 // PACKETS STATISTICS
 /*---------------------------------------------------------------------------*/
@@ -95,7 +95,7 @@ void STATS_print_background_noise(void);
 void STATS_clear_background_noise(void);
 
 
-#endif
+//#endif
 
  
 //     DRIVER STATISTICS
@@ -130,7 +130,7 @@ enum {
 	void STATS_display_driver_stats(void);
 	void STATS_print_driver_stats(void);
 
-#if RF2XX_STATS
+#if RF2XX_DRIVER_STATS
 	extern volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT];
 	#define RF2XX_STATS_GET(event)		rf2xxStats[event]
 	#define RF2XX_STATS_ADD(event)		rf2xxStats[event]++
@@ -142,5 +142,4 @@ enum {
 #endif
 
 
-
-//#endif
+#endif

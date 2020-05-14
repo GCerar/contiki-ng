@@ -25,11 +25,18 @@
 #define LOG_LEVEL_RF2XX     (LOG_CONF_LEVEL_RF2XX)
 #endif
 
-// Collect statistics on radio operations
-#ifndef RF2XX_CONF_STATS
-#define RF2XX_STATS     (0)
+// Collect packet statistics
+#ifndef RF2XX_CONF_PACKET_STATS
+#define RF2XX_PACKET_STATS     (0)
 #else
-#define RF2XX_STATS     (RF2XX_CONF_STATS)
+#define RF2XX_PACKET_STATS     (RF2XX_CONF_PACKET_STATS)
+#endif
+
+// Collect statistics on radio driver operations
+#ifdef  RF2XX_CONF_DRIVER_STATS
+#define RF2XX_DRIVER_STATS      (0)
+#else
+#define RF2XX_DRIVER_STATS      (RF2XX_CONF_DRIVER_STATS)
 #endif
 
 // Enable radio's auto acknowledge capabilities (extended mode)

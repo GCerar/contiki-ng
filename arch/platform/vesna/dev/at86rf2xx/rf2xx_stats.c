@@ -10,7 +10,7 @@
 #define LOG_LEVEL   LOG_LEVEL_INFO
 
 //TODO
-//#if RF2XX_STATS
+//#if RF2XX_PACKET_STATS
 
 static packet_ringbuf_t rx_ringbuf;
 static packet_ringbuf_t tx_ringbuf;

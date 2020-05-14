@@ -13,7 +13,8 @@
 // Defines for app
 #define UART1_CONF_BAUDRATE                         (921600)
 
-#define RF2XX_CONF_STATS                            (1)
+#define RF2XX_CONF_PACKET_STATS                     (1)
+#define RF2XX_CONF_DRIVER_STATS                     (1)
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE          (uint8_t[]){ 15, 20, 26 }
 

@@ -24,7 +24,7 @@
 PROCESS(rf2xx_process, "AT86RF2xx driver");
 
 
-#if RF2XX_STATS
+#if RF2XX_DRIVER_STATS
 volatile uint32_t rf2xxStats[RF2XX_STATS_COUNT] = { 0 };
 #endif
 
@@ -112,10 +112,10 @@ rf2xx_init(void)
     // Reset internal and hardware states
 	rf2xx_reset();
 
-#if RF2XX_STATS
     // Reset driver statistic
     RF2XX_STATS_RESET();
 
+#if RF2XX_PACKET_STATS
     // Init buffers for packet statistics
     STATS_initBuff();
 #endif
@@ -211,7 +211,7 @@ again:
     // Wait to complete BUSY STATE
     BUSYWAIT_UNTIL(flags.TRX_END);
 
-    #if RF2XX_STATS
+    #if RF2XX_PACKET_STATS
         // Update TX packet statistics
         STATS_txPush(&txFrame);
     #endif
@@ -449,7 +449,7 @@ rf2xx_isr(void)
         if (flags.RX_START) {
             frameRead(&rxFrame);
 
-            #if RF2XX_STATS
+            #if RF2XX_PACKET_STATS
                 // Update RX packet statistics
                 STATS_rxPush(&rxFrame);
             #endif
