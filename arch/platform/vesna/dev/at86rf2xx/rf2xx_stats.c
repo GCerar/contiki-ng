@@ -9,12 +9,12 @@
 #define LOG_MODULE  "STATS"
 #define LOG_LEVEL   LOG_LEVEL_INFO
 
-//TODO
-//#if RF2XX_PACKET_STATS
 
+#if RF2XX_PACKET_STATS
 static packet_ringbuf_t rx_ringbuf;
 static packet_ringbuf_t tx_ringbuf;
 static bgn_ringbuf_t bgn_ringbuf;
+#endif
 
 void
 STATS_initBuff(void)
@@ -372,9 +372,9 @@ STATS_clear_background_noise(void)
 /**********************************************************************************************************
  * DRIVER STATISTICS
  **********************************************************************************************************/
-
+#ifdef RF2XX_DRIVER_STATS
 extern const struct radio_driver rf2xx_driver;
-
+#endif
 /** @brief Costum function for stats-app.c. --> HUMAN READABLE
  *         Print all driver statistics.
  * 
@@ -463,5 +463,3 @@ STATS_display_driver_stats_inline(void){
         RF2XX_STATS_GET(txSuccess)      // Successfull transmissions
     );
 }
-
-//#endif

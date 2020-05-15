@@ -12,8 +12,6 @@
 #define RF2XX_STATS_RINGBUF_SIZE    	(20)
 #define RF2XX_STATS_RINGBUF_NOISE_SIZE 	(1001)
 
-//TODO
-//#if RF2XX_PACKET_STATS
 
 // PACKETS STATISTICS
 /*---------------------------------------------------------------------------*/
@@ -94,8 +92,6 @@ void STATS_update_background_noise(void);
 void STATS_print_background_noise(void);
 void STATS_clear_background_noise(void);
 
-
-//#endif
 
  
 //     DRIVER STATISTICS
