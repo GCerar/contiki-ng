@@ -33,7 +33,7 @@
 #endif
 
 // Collect statistics on radio driver operations
-#ifdef  RF2XX_CONF_DRIVER_STATS
+#ifndef  RF2XX_CONF_DRIVER_STATS
 #define RF2XX_DRIVER_STATS      (0)
 #else
 #define RF2XX_DRIVER_STATS      (RF2XX_CONF_DRIVER_STATS)
