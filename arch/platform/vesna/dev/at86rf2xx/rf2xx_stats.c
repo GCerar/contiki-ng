@@ -14,7 +14,7 @@
 static packet_ringbuf_t rx_ringbuf;
 static packet_ringbuf_t tx_ringbuf;
 static bgn_ringbuf_t bgn_ringbuf;
-#endif
+
 
 void
 STATS_initBuff(void)
@@ -367,7 +367,7 @@ STATS_clear_background_noise(void)
 }
 
 
-
+#endif
 
 /**********************************************************************************************************
  * DRIVER STATISTICS
