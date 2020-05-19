@@ -11,7 +11,7 @@
 #define TSCH_LOG_CONF_PER_SLOT                     (1)
 
 // Defines for app
-#define UART1_CONF_BAUDRATE                         (921600)
+#define UART1_CONF_BAUDRATE                         (460800)
 
 #define RF2XX_CONF_PACKET_STATS                     (1)
 #define RF2XX_CONF_DRIVER_STATS                     (1)
