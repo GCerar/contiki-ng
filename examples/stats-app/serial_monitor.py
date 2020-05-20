@@ -150,7 +150,7 @@ args = parser.parse_args()
 # Open serial monitor
 # ----------------------------------------------------------------------
 if(not args.port):
-    # Find port automaticly - search for ttyUSB
+    # Find port automatically - search for ttyUSB
     monitor.auto_connect()
 else:
     # Connect to given port
@@ -245,9 +245,9 @@ try:
         # So it didn't sent stop command 3min after MAX_APP_TIME, stop the monitor
         if elapsedMin > ((MAX_APP_TIME/60) + 2):
             print("\n \n Vesna must have crashed... :( \n \n")
-            # add a comment that Vesna didn't respond into text file
-            monitor.store_str_to_file("""\n \n ERROR! \n Vesna has crashed durring application. 
-                                    No stop command found 3min after end of application!""")
+            monitor.store_str_to_file(""" \n ERROR!
+            Vesna has crashed durring application. 
+            No stop command found 3min after end of application!""")
             break
         
         # Read one line (until \n char)
@@ -267,6 +267,7 @@ try:
             line += 1
         else:
             timeoutCnt += 1
+            monitor.store_str_to_file(("Serial timeout occurred: " + str(timeoutCnt)))
             print("Serial timeout occurred: " + str(timeoutCnt))
 
         # Update status line in terminal
