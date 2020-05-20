@@ -267,7 +267,7 @@ try:
             line += 1
         else:
             timeoutCnt += 1
-            monitor.store_str_to_file(("Serial timeout occurred: " + str(timeoutCnt)))
+            monitor.store_str_to_file(("Serial timeout occurred: " + str(timeoutCnt) + "\n"))
             print("Serial timeout occurred: " + str(timeoutCnt))
 
         # Update status line in terminal
