@@ -171,7 +171,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		counter++;
 
 		// If root
-		/*
+		
 		if(device_is_root)
 		{
 			if(counter > 60 * 5){
@@ -184,7 +184,7 @@ PROCESS_THREAD(stats_process, ev, data)
 				}
 			}
 		}
-		*/
+		
 
 		if((counter % 10) == 0){
 			STATS_print_packet_stats();
