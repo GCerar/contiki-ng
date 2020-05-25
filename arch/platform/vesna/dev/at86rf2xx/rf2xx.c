@@ -696,7 +696,7 @@ set_value(radio_param_t param, radio_value_t value)
         {
             // TODO: Make it shorter
             bool sendOnCCA = (value & RADIO_TX_MODE_SEND_ON_CCA) > 0;
-            if (sendOnCCA == RF2XX_HW_CCA) { // They are mutually exclusive
+            if (sendOnCCA != RF2XX_HW_CCA) { // They are mutually exclusive
                 LOG_ERR("Invalid RF2XX_HW_CCA settings\n");
                 return RADIO_RESULT_ERROR;
             }
