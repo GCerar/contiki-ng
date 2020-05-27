@@ -176,7 +176,6 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "poll" \
 		-c "flash write_image erase $*.$(TARGET) 0 elf" \
 		-c "verify_image $*.$(TARGET) 0 elf" \
-
 		-c "reset run" \
 		-c "shutdown"
 
