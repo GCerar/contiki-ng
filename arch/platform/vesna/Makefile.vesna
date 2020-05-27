@@ -168,7 +168,7 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "shutdown"
 
 %.logatec3: %.$(TARGET)
-	$(OPENOCD) \
+	$(Q)openocd \
 		-f interface/sysfsgpio-lgtc.cfg \
 		-f target/stm32f1x.cfg \
 		-c "init" \
