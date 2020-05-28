@@ -80,7 +80,7 @@ STATS_input_command(char *data){
     switch(cmd){
       case '>':
         process_start(&stats_process, NULL);
-		process_start(&bgn_process, NULL);
+		//process_start(&bgn_process, NULL);
         break;
       
       case '*':
@@ -143,8 +143,8 @@ PROCESS_THREAD(stats_process, ev, data)
 {
 	static struct etimer timer;
 
-	static uip_ipaddr_t mc_addr;
-	uint32_t vesna_up_time;
+	//static uip_ipaddr_t mc_addr;
+	//uint32_t vesna_up_time;
 
 	PROCESS_BEGIN();
 
@@ -158,7 +158,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	STATS_clear_packet_stats();
 	STATS_clear_background_noise();
 
-	uip_create_linklocal_rplnodes_mcast(&mc_addr);
+	//uip_create_linklocal_rplnodes_mcast(&mc_addr);
 
 	// Send app duration to LGTC
 	STATS_output_command(app_duration);
@@ -188,8 +188,7 @@ PROCESS_THREAD(stats_process, ev, data)
 
 		if((counter % 10) == 0){
 			STATS_print_packet_stats();
-			STATS_print_background_noise();
-			printf("NewLine \n");
+			//STATS_print_background_noise();
 		}
 		
 
@@ -226,7 +225,7 @@ STATS_set_device_as_root(void){
 void
 STATS_close_app(void){
 
-	process_exit(&bgn_process);
+	//process_exit(&bgn_process);
 
 	STATS_print_driver_stats();
 	
