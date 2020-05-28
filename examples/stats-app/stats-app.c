@@ -41,7 +41,7 @@
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
 #define BGN_MEASURE_TIME_MS (10)
-#define MAX_APP_TIME  (60 * 60) 
+#define MAX_APP_TIME  (60 * 120) 
 
 uint32_t counter = 0;
 
@@ -171,7 +171,7 @@ PROCESS_THREAD(stats_process, ev, data)
 		counter++;
 
 		// If root
-		
+		/*
 		if(device_is_root)
 		{
 			if(counter > 60 * 5){
@@ -183,12 +183,13 @@ PROCESS_THREAD(stats_process, ev, data)
 					printf("MC sent [%ld ms] \n", vesna_up_time);
 				}
 			}
-		}
+		}*/
 		
 
 		if((counter % 10) == 0){
 			STATS_print_packet_stats();
 			STATS_print_background_noise();
+			printf("NewLine \n");
 		}
 		
 
