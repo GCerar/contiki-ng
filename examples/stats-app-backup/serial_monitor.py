@@ -12,6 +12,7 @@ import os
 from datetime import datetime
 from timeit import default_timer as timer
 
+LINES_TO_READ = 2000
 MAX_APP_TIME  = 1200
 
 DEFAULT_FILE_NAME = "node_stats.txt"
@@ -169,6 +170,13 @@ else:
 monitor.prepare_file(name)
 
 # ----------------------------------------------------------------------
+# Set device as root of the network via serial CLI
+# ----------------------------------------------------------------------
+if(args.root):
+    print("Set device as DAG root")
+    monitor.send_cmd("*Root")
+    
+# ----------------------------------------------------------------------
 # Start the app
 # ----------------------------------------------------------------------
 print("Send start command")
@@ -182,6 +190,7 @@ monitor.wait_response(3)
 if(not monitor.gotResponse):
     print("No response -> send start cmd again...")
     monitor.flush()
+    monitor.send_cmd("=End")
     monitor.send_cmd(">Start")
     monitor.wait_response(3)
 
@@ -189,13 +198,6 @@ if(not monitor.gotResponse):
     print("No response...please reset the device and try again")
     sys.exit(1)
 
-# ----------------------------------------------------------------------
-# Set device as root of the network via serial CLI
-# ----------------------------------------------------------------------
-if(args.root):
-    print("Set device as DAG root")
-    monitor.send_cmd("*Root")
-    
 print("Start logging serial input:") 
 
 # Open file to append serial input to it
@@ -209,6 +211,15 @@ monitor.file = open(monitor.filename, "a")
 value = monitor.read_line()
 if((chr(value[0]) == 'A') and (chr(value[1])== 'D')):
     MAX_APP_TIME = int(value[3:])
+
+# Get a device ID (ex: Device ID: 0124B006D1)
+value = monitor.read_line()
+monitor.store_to_file(value)
+
+id = value.decode("UTF-8").split(": ")
+if(str(id[0])== "Device ID"):
+    # Get only last 4 bytes
+    deviceID = id[1][-5:-1]
 
 # ----------------------------------------------------------------------
 # Read input lines while LINES_TO_READ or until app stops sending data
