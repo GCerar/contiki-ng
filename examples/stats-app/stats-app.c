@@ -41,7 +41,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
 	counter++;
 	if(counter == (6 * 200)){
-		printf("End of app-time \n")
+		printf("End of app-time \n");
 		printf("= \n");
 		PROCESS_EXIT();
 	}
