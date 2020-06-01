@@ -387,20 +387,22 @@ again:
         case TRX_STATUS_RX_AACK_ON_NOCLK:
         case TRX_STATUS_TX_ON:
         case TRX_STATUS_TX_ARET_ON:
+	case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_RX_AACK_NOCLK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
             // Idle Tx/Rx state
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
             flags.value = 0;
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             return 1;
 
-        case TRX_STATUS_BUSY_RX:
-        case TRX_STATUS_BUSY_RX_AACK:
-        case TRX_STATUS_BUSY_RX_AACK_NOCLK:
-        case TRX_STATUS_BUSY_TX:
-        case TRX_STATUS_BUSY_TX_ARET:
+        /*
             // Busy states
             LOG_DBG("Busy state\n");
             return 0;
+	*/
 
         default:
             LOG_ERR("Unknown state: 0x%02x\n", trxState);
