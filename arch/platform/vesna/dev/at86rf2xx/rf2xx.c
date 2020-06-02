@@ -180,6 +180,9 @@ again:
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             flags.value = 0;
 
+            // First to off state
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            
             regWrite(RG_TRX_STATE, (RF2XX_ARET) ? TRX_CMD_TX_ARET_ON : TRX_CMD_TX_ON);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
             //BUSYWAIT_UNTIL(bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
