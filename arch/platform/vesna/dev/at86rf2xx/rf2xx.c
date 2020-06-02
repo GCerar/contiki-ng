@@ -148,7 +148,9 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
 #if !RF2XX_CHECKSUM
     txFrame.crc = (uint16_t *)(txFrame.content + txFrame.len);
-    *txBuffer.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
+    *txFrame.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
+
+    LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
 #endif
 
     return RADIO_TX_OK;
@@ -267,6 +269,16 @@ int rf2xx_read(void *buf, unsigned short buf_len)
     rxFrame.len = 0;
 
     critical_exit(status);
+
+#if !RF2XX_CHECKSUM
+
+    uint16_t crc = crc16_data(rxFrame.content, frame_len, 0x00);
+
+    if(*rxFrame.crc != crc){
+        LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);
+        return 0;
+    }
+#endif      
 
     LOG_DBG("Got %u bytes\n", frame_len);
     return frame_len;

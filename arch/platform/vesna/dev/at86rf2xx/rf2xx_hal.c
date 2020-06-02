@@ -425,6 +425,13 @@ FIFOWRITE(txFrame_t *frame)
         if (status != VSN_SPI_SUCCESS) goto error;
     }
 
+    #if !RF2XX_CHECKSUM
+        for (uint8_t i = 0; i < RF2XX_CRC_SIZE; i++) {
+            status = vsnSPI_pullByteTXRX(rf2xxSPI, (uint8_t *)frame->crc+i, &dummy);
+            if (status != VSN_SPI_SUCCESS) goto error;
+        }
+    #endif
+
 error:
     clearCS();
     critical_exit(intStatus);
