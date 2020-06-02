@@ -102,6 +102,7 @@ enum {
 	rxSuccess,		// Successfully received packets
 	rxToStack,		// Not used in TSCH
 	rxAddrMatch,	// Not used in TSCH?
+	rxCrcError,		// Wrong crc calculation
 
 	rxData,			// Received Data packet
 	rxBeacon,		// Received Beacon packet

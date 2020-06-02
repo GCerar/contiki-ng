@@ -271,11 +271,11 @@ int rf2xx_read(void *buf, unsigned short buf_len)
     critical_exit(status);
 
 #if !RF2XX_CHECKSUM
-
     uint16_t crc = crc16_data(rxFrame.content, frame_len, 0x00);
 
     if(*rxFrame.crc != crc){
         LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);
+        RF2XX_STATS_ADD(rxCrcError);
         return 0;
     }
 #endif      
