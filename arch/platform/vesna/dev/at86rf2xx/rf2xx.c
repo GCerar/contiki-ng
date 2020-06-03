@@ -255,14 +255,18 @@ again:
 
 int
 rf2xx_send(const void *payload, unsigned short payload_len)
-{
+{   
+     LOG_DBG("%s\n", __func__);
+
 	rf2xx_prepare(payload, payload_len);
 	return rf2xx_transmit(payload_len);
 }
 
 
 int rf2xx_read(void *buf, unsigned short buf_len)
-{
+{   
+     LOG_DBG("%s\n", __func__);
+
     int_master_status_t status;
     uint8_t frame_len = rxFrame.len;
 
@@ -346,6 +350,9 @@ rf2xx_pending_packet(void)
 int
 rf2xx_on(void)
 {
+
+     LOG_DBG("%s\n", __func__);
+
     uint8_t trxState;
 
 again:
@@ -387,6 +394,8 @@ again:
 int
 rf2xx_off(void)
 {
+
+     LOG_DBG("%s\n", __func__);
     uint8_t trxState;
 
 again:
