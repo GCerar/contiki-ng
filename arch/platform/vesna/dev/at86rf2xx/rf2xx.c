@@ -336,8 +336,7 @@ rf2xx_pending_packet(void)
         uint16_t crc = crc16_data(rxFrame.content, rxFrame.len, 0x00);
 
         if(*rxFrame.crc != crc){
-            LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);
-            RF2XX_STATS_ADD(rxCrcError);
+            LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);   // TODO brisi
             return 0;
         }
     }
@@ -456,6 +455,8 @@ rf2xx_isr(void)
         flags.RX_START = 1;
         flags.AMI = 0;
         flags.TRX_END = 0;
+
+        printf("------------------- \n")
 
         rxFrame.timestamp = RTIMER_NOW();
         RF2XX_STATS_ADD(rxDetected);
