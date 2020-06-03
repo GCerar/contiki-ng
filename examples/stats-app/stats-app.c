@@ -29,7 +29,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   printf("> \n");
 
-  printf("AD %d \n", (60*30));
+  printf("AD %d \n", (60*20));
 
 	counter = 0;
 	
@@ -40,7 +40,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
     printf("Still alive\n");
 
 	counter++;
-	if(counter == (6 * 30)){
+	if(counter == (6 * 20)){
 		printf("End of app-time \n");
 		printf("= \n");
 		PROCESS_EXIT();

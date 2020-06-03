@@ -271,17 +271,7 @@ int rf2xx_read(void *buf, unsigned short buf_len)
     memcpy(buf, rxFrame.content, rxFrame.len);
     rxFrame.len = 0;
 
-    critical_exit(status);
-
-#if !RF2XX_CHECKSUM
-    uint16_t crc = crc16_data(rxFrame.content, frame_len, 0x00);
-
-    if(*rxFrame.crc != crc){
-        LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);
-        RF2XX_STATS_ADD(rxCrcError);
-        return 0;
-    }
-#endif      
+    critical_exit(status);   
 
     LOG_DBG("Got %u bytes\n", frame_len);
     return frame_len;
@@ -337,6 +327,18 @@ rf2xx_receiving_packet(void)
 int
 rf2xx_pending_packet(void)
 {
+    #if !RF2XX_CHECKSUM
+    if(rxFrame.len > 0){
+        uint16_t crc = crc16_data(rxFrame.content, rxFrame.len, 0x00);
+
+        if(*rxFrame.crc != crc){
+            LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);
+            RF2XX_STATS_ADD(rxCrcError);
+            return 0;
+        }
+    }
+    #endif   
+
     return rxFrame.len > 0;
 }
 
@@ -724,6 +726,7 @@ set_value(radio_param_t param, radio_value_t value)
             if (value < 0 || value > 0xF) {
                 return RADIO_RESULT_INVALID_VALUE;
             }
+            printf("Powaaaaa \n");
             bitWrite(SR_TX_PWR, value);
             return RADIO_RESULT_OK;
 
