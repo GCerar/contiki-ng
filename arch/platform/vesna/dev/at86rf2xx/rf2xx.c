@@ -456,7 +456,7 @@ rf2xx_isr(void)
         flags.AMI = 0;
         flags.TRX_END = 0;
 
-        printf("------------------- \n")
+        printf("------------------- \n");
 
         rxFrame.timestamp = RTIMER_NOW();
         RF2XX_STATS_ADD(rxDetected);
