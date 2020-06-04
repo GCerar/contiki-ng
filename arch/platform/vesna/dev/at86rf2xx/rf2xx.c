@@ -130,7 +130,6 @@ rf2xx_init(void)
 int
 rf2xx_prepare(const void *payload, unsigned short payload_len)
 {
-    LOG_DBG("%s\n", __func__);
 
     RF2XX_STATS_ADD(txTry);
 
@@ -150,7 +149,7 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
     txFrame.crc = (uint16_t *)(txFrame.content + txFrame.len);
     *txFrame.crc = crc16_data(txFrame.content, txFrame.len, 0x00);
 
-    LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
+    // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
 #endif
 
     return RADIO_TX_OK;
@@ -212,6 +211,7 @@ again:
         return RADIO_TX_ERR;
     }
 
+        // TODO datasheet 127!
 
     // Wait to complete BUSY STATE
     BUSYWAIT_UNTIL(flags.TRX_END);
@@ -256,8 +256,6 @@ again:
 int
 rf2xx_send(const void *payload, unsigned short payload_len)
 {   
-     LOG_DBG("%s\n", __func__);
-
 	rf2xx_prepare(payload, payload_len);
 	return rf2xx_transmit(payload_len);
 }
@@ -265,8 +263,6 @@ rf2xx_send(const void *payload, unsigned short payload_len)
 
 int rf2xx_read(void *buf, unsigned short buf_len)
 {   
-     LOG_DBG("%s\n", __func__);
-
     int_master_status_t status;
     uint8_t frame_len = rxFrame.len;
 
@@ -337,6 +333,7 @@ rf2xx_pending_packet(void)
 
         if(*rxFrame.crc != crc){
             LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);   // TODO brisi
+            rxFrame.len = 0;    // TODO is it ok?
             return 0;
         }
     }
@@ -349,9 +346,6 @@ rf2xx_pending_packet(void)
 int
 rf2xx_on(void)
 {
-
-     LOG_DBG("%s\n", __func__);
-
     uint8_t trxState;
 
 again:
@@ -393,8 +387,6 @@ again:
 int
 rf2xx_off(void)
 {
-
-     LOG_DBG("%s\n", __func__);
     uint8_t trxState;
 
 again:
@@ -412,22 +404,25 @@ again:
         case TRX_STATUS_RX_AACK_ON_NOCLK:
         case TRX_STATUS_TX_ON:
         case TRX_STATUS_TX_ARET_ON:
-	case TRX_STATUS_BUSY_RX:
-        case TRX_STATUS_BUSY_RX_AACK:
-        case TRX_STATUS_BUSY_RX_AACK_NOCLK:
-        case TRX_STATUS_BUSY_TX:
-        case TRX_STATUS_BUSY_TX_ARET:
+
             // Idle Tx/Rx state
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
             flags.value = 0;
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             return 1;
 
-        /*
+        case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_RX_AACK_NOCLK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
+
             // Busy states
-            LOG_DBG("Busy state\n");
-            return 0;
-	*/
+            LOG_WARN("Interrupted busy state\n");
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            flags.value = 0;
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+            return 1;
 
         default:
             LOG_ERR("Unknown state: 0x%02x\n", trxState);
@@ -455,8 +450,6 @@ rf2xx_isr(void)
         flags.RX_START = 1;
         flags.AMI = 0;
         flags.TRX_END = 0;
-
-        printf("------------------- \n");
 
         rxFrame.timestamp = RTIMER_NOW();
         RF2XX_STATS_ADD(rxDetected);
@@ -736,7 +729,6 @@ set_value(radio_param_t param, radio_value_t value)
             if (value < 0 || value > 0xF) {
                 return RADIO_RESULT_INVALID_VALUE;
             }
-            printf("Powaaaaa \n");
             bitWrite(SR_TX_PWR, value);
             return RADIO_RESULT_OK;
 

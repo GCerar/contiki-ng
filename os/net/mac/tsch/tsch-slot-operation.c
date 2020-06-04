@@ -548,7 +548,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 #endif /* LLSEC802154_ENABLED */
 
       /* prepare packet to send: copy to radio buffer */
-      printf("Pred prepare\n");
       if(packet_ready && NETSTACK_RADIO.prepare(packet, packet_len) == 0) { /* 0 means success */
         static rtimer_clock_t tx_duration;
 
@@ -570,11 +569,8 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 #endif /* TSCH_CCA_ENABLED */
         {
           /* delay before TX */
-          printf("Pred cakanjem\n");
           TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing[tsch_ts_tx_offset] - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
-          printf("Pred debugg \n");
           TSCH_DEBUG_TX_EVENT();
-          printf("Pred transmit\n");
           /* send packet already in radio tx buffer */
           mac_tx_status = NETSTACK_RADIO.transmit(packet_len);
           tx_count++;
