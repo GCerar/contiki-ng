@@ -432,12 +432,14 @@ again:
         case TRX_STATUS_BUSY_TX_ARET:
 
             // Busy states
-            LOG_WARN("Interrupted busy state %d\n", trxState);
-            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-            flags.value = 0;
-            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-            return 1;
+            //LOG_WARN("Interrupted busy state %d\n", trxState);
+            //regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            //while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            //flags.value = 0;
+            //ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+            
+            LOG_DBG("Busy state\n");
+            return 0;
 
         default:
             LOG_ERR("Unknown state: 0x%02x\n", trxState);
