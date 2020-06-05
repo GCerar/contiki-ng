@@ -158,7 +158,9 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
 int
 rf2xx_transmit(unsigned short transmit_len)
-{
+{   
+    LOG_DBG("%s\n", __func__);
+
     uint8_t trxState, dummy __attribute__((unused));
     vsnSPI_ErrorStatus status;
 
@@ -430,7 +432,7 @@ again:
         case TRX_STATUS_BUSY_TX_ARET:
 
             // Busy states
-            LOG_WARN("Interrupted busy state\n");
+            LOG_WARN("Interrupted busy state %d\n", trxState);
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
             flags.value = 0;
