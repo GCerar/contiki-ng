@@ -179,7 +179,8 @@ again:
 
             // First to off state
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
             regWrite(RG_TRX_STATE, (RF2XX_ARET) ? TRX_CMD_TX_ARET_ON : TRX_CMD_TX_ON);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
             //BUSYWAIT_UNTIL(bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
@@ -211,7 +212,16 @@ again:
     }
 
     // Wait to complete BUSY STATE
-    BUSYWAIT_UNTIL(flags.TRX_END || flags.TRX_UR);
+    while(!flags.TRX_END || !flags.TRX_UR ){
+
+        uint8_t trxStatus = bitRead(SR_TRX_STATUS);
+
+        if(trxStatus == TRX_STATUS_TX_ON  || trxStatus == TRX_STATUS_TX_ARET_ON ){
+            printf("Other way \n");
+            break;
+        }
+    }
+    // BUSYWAIT_UNTIL(flags.TRX_END || flags.TRX_UR);
 
     if(flags.TRX_UR){
         printf("TRX_UR flag! \n");
@@ -408,6 +418,7 @@ again:
 
             // Idle Tx/Rx state
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
             flags.value = 0;
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             return 1;
@@ -421,6 +432,7 @@ again:
             // Busy states
             LOG_WARN("Interrupted busy state\n");
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
             flags.value = 0;
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             return 1;
