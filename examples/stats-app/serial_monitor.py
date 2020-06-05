@@ -88,7 +88,7 @@ class serial_monitor():
 
     def prepare_file(self, filename):
         self.filename = filename
-        self.file = open(filename, mode="w", encoding="UTF-8")
+        self.file = open(filename, mode="w", encoding="ASCII")
         self.file.write(str(datetime.now())+"\n")
         self.file.write("----------------------------------------------------------------------------------------------- \n")
         self.file.write("Serial input from port:" + monitor.port + "\n")
@@ -100,7 +100,7 @@ class serial_monitor():
     
     def store_to_file(self, data):
         self.file.write("[" + str(datetime.now().time())+"]: ")
-        data = data.decode("UTF-8")
+        data = data.decode("ASCII")
         self.file.write(str(data))
 
     def store_str_to_file(self,string):
@@ -172,7 +172,7 @@ monitor.prepare_file(name)
 # Start the app
 # ----------------------------------------------------------------------
 print("Send start command")
-monitor.send_cmd(">Start")
+monitor.send_cmd(">")
 
 # Wait for response ('>' character) from Vesna for 3 seconds
 print("Waiting for response...")
@@ -182,11 +182,13 @@ monitor.wait_response(3)
 if(not monitor.gotResponse):
     print("No response -> send start cmd again...")
     monitor.flush()
-    monitor.send_cmd(">Start")
+    monitor.send_cmd(">")
     monitor.wait_response(3)
 
 if(not monitor.gotResponse):
     print("No response...please reset the device and try again")
+    monitor.store_str_to_file("No response from Vesna...")
+    monitor.close()
     sys.exit(1)
 
 # ----------------------------------------------------------------------
@@ -194,7 +196,7 @@ if(not monitor.gotResponse):
 # ----------------------------------------------------------------------
 if(args.root):
     print("Set device as DAG root")
-    monitor.send_cmd("*Root")
+    monitor.send_cmd("*")
     
 print("Start logging serial input:") 
 

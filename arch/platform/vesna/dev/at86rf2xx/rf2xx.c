@@ -159,8 +159,6 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 int
 rf2xx_transmit(unsigned short transmit_len)
 {
-    LOG_DBG("%s\n", __func__);
-
     uint8_t trxState, dummy __attribute__((unused));
     vsnSPI_ErrorStatus status;
 
@@ -177,7 +175,7 @@ again:
         case TRX_STATUS_BUSY_RX:
             // 1-hop migration
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-            flags.value = 0;
+            //flags.value = 0;
 
             // First to off state
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
@@ -193,6 +191,7 @@ again:
         case TRX_STATUS_BUSY_TX_ARET:
             // Already in proper state;
             ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+            flags.value = 0;
             break;
 
         default: // Unknown state
@@ -211,10 +210,12 @@ again:
         return RADIO_TX_ERR;
     }
 
-        // TODO datasheet 127!
-
     // Wait to complete BUSY STATE
-    BUSYWAIT_UNTIL(flags.TRX_END);
+    BUSYWAIT_UNTIL(flags.TRX_END || flags.TRX_UR);
+
+    if(flags.TRX_UR){
+        printf("TRX_UR flag! \n");
+    }
 
     #if RF2XX_PACKET_STATS
         // Update TX packet statistics

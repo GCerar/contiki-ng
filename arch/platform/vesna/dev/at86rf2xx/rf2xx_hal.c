@@ -49,7 +49,7 @@
 #define CMD_WRITE		((uint8_t)0x40)
 
 
-#define DEFAULT_IRQ_MASK    (IRQ2_RX_START | IRQ3_TRX_END | IRQ4_CCA_ED_DONE | IRQ5_AMI)
+#define DEFAULT_IRQ_MASK    (IRQ2_RX_START | IRQ3_TRX_END | IRQ4_CCA_ED_DONE | IRQ5_AMI | IRQ6_TRX_UR)
 
 
 // EXTI (interrupt) struct (from STM) and constant (immutable) pointer to it.
