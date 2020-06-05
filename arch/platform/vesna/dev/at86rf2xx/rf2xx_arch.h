@@ -102,7 +102,7 @@ extern const uint16_t tsch_timeslot_timing_rf2xx_10000us_250kbps[];
 
 // Enable offloading checksum calculation to the radio chip
 #ifndef RF2XX_CONF_CHECKSUM
-#define RF2XX_CHECKSUM  (0)
+#define RF2XX_CHECKSUM  (1)
 #else
 #define RF2XX_CHECKSUM  (RF2XX_CONF_CHECKSUM)
 #endif
