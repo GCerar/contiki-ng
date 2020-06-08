@@ -5,7 +5,7 @@
 #define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_INFO
 #define LOG_CONF_LEVEL_6LOWPAN                     LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_TCPIP                       LOG_LEVEL_NONE
-#define LOG_CONF_LEVEL_MAC                         LOG_LEVEL_INFO   //Change this for more info
+#define LOG_CONF_LEVEL_MAC                         LOG_LEVEL_DBG   //Change this for more info
 #define LOG_CONF_LEVEL_FRAMER                      LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_RF2XX                       LOG_LEVEL_DBG
 #define TSCH_LOG_CONF_PER_SLOT                     (1)
