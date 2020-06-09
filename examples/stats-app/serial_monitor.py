@@ -168,6 +168,9 @@ else:
 # (optional) Write first lines into it
 monitor.prepare_file(name)
 
+# Open file to append serial input to it
+monitor.file = open(monitor.filename, "a")
+
 # ----------------------------------------------------------------------
 # Start the app
 # ----------------------------------------------------------------------
@@ -199,9 +202,6 @@ if(args.root):
     monitor.send_cmd("*")
     
 print("Start logging serial input:") 
-
-# Open file to append serial input to it
-monitor.file = open(monitor.filename, "a")
 
 # ----------------------------------------------------------------------
 # Get general info about the app
