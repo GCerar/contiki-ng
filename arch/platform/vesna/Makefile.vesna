@@ -83,7 +83,7 @@ CFLAGS += -Wall -Wwrite-strings -Wshadow -Werror=implicit-function-declaration
 CFLAGS += -std=gnu99
 
 ### Are we building with code size optimisations?
-SMALL ?= 0
+SMALL ?= 1
 ifeq ($(SMALL),1)
   CFLAGS += -Os
 else
