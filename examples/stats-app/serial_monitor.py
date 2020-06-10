@@ -34,7 +34,7 @@ class serial_monitor():
     def connect_to(self, p):
         try:
             self.port = "/dev/" + p
-            self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=10)
+            self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=20)
             print("Serial monitor opened on port: " + self.port)
         except:
             print("Serial port not connected or in use!..Exiting now")
@@ -45,7 +45,7 @@ class serial_monitor():
         for i in range(2, 5):
             try:
                 self.port = BASEPORT + str(i)
-                self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=10)
+                self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=20)
                 print("Serial monitor opened on port: " + self.port)
                 break
             except:
@@ -220,12 +220,13 @@ line = 1
 startTime = timer()
 elapsedMin = 0
 timeoutCnt = 0
+timeoutGlobalCnt = 0
 
 try:
-    while(True):    #while(line <= LINES_TO_READ): 
+    while(True):
         
         # Measure approximate elapsed time - just for a feeling (+- 10s)
-        if((timer() - startTime) > 59):
+        if((timer() - startTime) > 59):                                     # TODO: timeout is 20..test if this works   
             elapsedMin += 1
             startTime = timer()
             #print(timer() - startTime)
@@ -239,6 +240,13 @@ try:
             monitor.store_str_to_file(""" \n ERROR!
             Vesna has crashed durring application. 
             No stop command found 3min after end of application!""")
+            break
+
+        if timeoutCnt > 50 :
+            print("\n \n Vesna must have crashed... :( \n \n")
+            monitor.store_str_to_file(""" \n ERROR!
+            Vesna has crashed durring application. 
+            50 Timeout event in a row happend""")
             break
         
         # Read one line (until \n char)
@@ -256,9 +264,12 @@ try:
             monitor.store_to_file(value)
 
             line += 1
+            timeoutCnt = 0
+
         else:
             timeoutCnt += 1
-            monitor.store_str_to_file(("Serial timeout occurred: " + str(timeoutCnt) + "\n"))
+            timeoutGlobalCnt += 1
+            monitor.store_str_to_file(("Serial timeout occurred: " + str(timeoutGlobalCnt) + "\n"))
             print("Serial timeout occurred: " + str(timeoutCnt))
 
         # Update status line in terminal
