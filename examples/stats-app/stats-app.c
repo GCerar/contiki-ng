@@ -17,6 +17,7 @@ AUTOSTART_PROCESSES(&serial_input_process);
 /*---------------------------------------------------------------------------*/
 
 uint32_t counter = 0;
+uint8_t addr[8];
 
 void STATS_input_command(char *data);
 void STATS_set_device_as_root(void);
@@ -29,18 +30,24 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   printf("> \n");
 
-  printf("AD %d \n", (60*60*12));
+  printf("AD %d \n", (60*60*3));
 
 	counter = 0;
 	
   /* Setup a periodic timer that expires after 10 seconds. */
   etimer_set(&timer, CLOCK_SECOND * 10);
 
+  rf2xx_driver.get_object(RADIO_PARAM_64BIT_ADDR, &addr, 8);
+	printf("Device ID: ");
+	for(int j=0; j<8; j++){
+		printf("%X",addr[j]);
+	}
+
   while(1) {
     printf("Still alive\n");
 
 	counter++;
-	if(counter == (6 * 60*12)){
+	if(counter == (6 * 60*3)){
 		printf("End of app-time \n");
 		printf("= \n");
 		PROCESS_EXIT();

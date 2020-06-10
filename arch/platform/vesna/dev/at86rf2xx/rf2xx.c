@@ -219,14 +219,14 @@ again:
         uint8_t trxStatus = bitRead(SR_TRX_STATUS);
 
         if(trxStatus == TRX_STATUS_TX_ON  || trxStatus == TRX_STATUS_TX_ARET_ON ){
-            printf("Other way \n");
+            LOG_DBG("Other way \n");
             break;
         }
     }
     // BUSYWAIT_UNTIL(flags.TRX_END || flags.TRX_UR);
 
     if(flags.TRX_UR){
-        printf("TRX_UR flag! \n");
+        LOG_DBG("TRX_UR flag! \n");
     }
 
     #if RF2XX_PACKET_STATS
