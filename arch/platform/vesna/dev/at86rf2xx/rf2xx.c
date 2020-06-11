@@ -170,28 +170,28 @@ again:
         case TRX_STATUS_STATE_TRANSITION:
             goto again;
 
-        case TRX_STATUS_TRX_OFF:
-        case TRX_STATUS_RX_AACK_ON:
-        case TRX_STATUS_BUSY_RX_AACK:
         case TRX_STATUS_RX_ON:
+        case TRX_STATUS_RX_AACK_ON:
         case TRX_STATUS_BUSY_RX:
-            // 1-hop migration
-            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-            //flags.value = 0;
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
 
-            // First to off state
+            // First to TRX_OFF state
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
 
+        case TRX_STATUS_TRX_OFF:
+
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
+            // Then go to TX state
             regWrite(RG_TRX_STATE, (RF2XX_ARET) ? TRX_CMD_TX_ARET_ON : TRX_CMD_TX_ON);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-            //BUSYWAIT_UNTIL(bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-            //BUSYWAIT_UNTIL(flags.PLL_LOCK); // Is not triggered when Tx -> Rx
 
         case TRX_STATUS_TX_ON:
-        case TRX_STATUS_BUSY_TX:
         case TRX_STATUS_TX_ARET_ON:
-        case TRX_STATUS_BUSY_TX_ARET:
+        
             // Already in proper state;
             ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
             flags.value = 0;
@@ -203,7 +203,7 @@ again:
             return RADIO_TX_ERR;
     }
 
-
+    // Fast mode initiate transmission
     setSLPTR();
     clearSLPTR();
 
@@ -239,7 +239,14 @@ again:
     ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 
     flags.value = 0;
+    
+    // First to TRX_OFF state
+    regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+    while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+    // Go to RX state
     regWrite(RG_TRX_STATE, (RF2XX_AACK) ? TRX_CMD_RX_AACK_ON: TRX_CMD_RX_ON);
+    while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
 
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
@@ -367,25 +374,35 @@ again:
         case TRX_STATUS_STATE_TRANSITION:
             goto again;
 
-        case TRX_STATUS_TRX_OFF:
-        case TRX_STATUS_TX_ARET_ON:
-        case TRX_STATUS_BUSY_TX_ARET:
-        case TRX_STATUS_TX_ON:
         case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
+            LOG_WARN("ON-Interrupted busy state %d\n", trxState);
+
+        case TRX_STATUS_TX_ARET_ON:
+
+             // First to TRX_OFF state
+            
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+        case TRX_STATUS_TRX_OFF:
+        case TRX_STATUS_TX_ON:
+        
             // 1-hop migration
             flags.value = 0;
             regWrite(RG_TRX_STATE, (RF2XX_AACK) ? TRX_CMD_RX_AACK_ON : TRX_CMD_RX_ON);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-            //BUSYWAIT_UNTIL(flags.PLL_LOCK);
+
             ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
             // fall-thru
 
         //case TRX_STATUS_RX_AACK_ON_NOCLK:
         //case TRX_STATUS_BUSY_RX_AACK_NOCLK:
-        case TRX_STATUS_RX_AACK_ON:
-        case TRX_STATUS_BUSY_RX_AACK:
-        case TRX_STATUS_RX_ON:
         case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+            LOG_WARN("Allready receiving something \n");
+        case TRX_STATUS_RX_ON:
+        case TRX_STATUS_RX_AACK_ON:
             // Proper state
             ENERGEST_ON(ENERGEST_TYPE_LISTEN);
             return 1;
@@ -432,13 +449,12 @@ again:
         case TRX_STATUS_BUSY_TX_ARET:
 
             // Busy states
-            //LOG_WARN("Interrupted busy state %d\n", trxState);
-            //regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            //while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-            //flags.value = 0;
-            //ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+            LOG_WARN("OFF-Interrupted busy state %d\n", trxState);
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            flags.value = 0;
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             
-            LOG_DBG("Busy state\n");
             return 0;
 
         default:
