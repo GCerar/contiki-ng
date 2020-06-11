@@ -152,7 +152,7 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
     // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
 #endif
 
-    // TODO Gregor? Put state transition here?
+    // TODO Gregor? Put state transition here? Because Contiki first calls prepare, than wait than transmit...it waits for radio transitions, so we do not have to
 
     return RADIO_TX_OK;
 }
@@ -415,49 +415,96 @@ rf2xx_on(void)
 {
     uint8_t trxState;
 
-again:
-    trxState = bitRead(SR_TRX_STATUS);
-    switch (trxState) {
-        case TRX_STATUS_STATE_TRANSITION:
-            goto again;
+#if RF2XX_AACK
+    again:
+        trxState = bitRead(SR_TRX_STATUS);
+        switch (trxState) {
+            case TRX_STATUS_STATE_TRANSITION:
+                goto again;
 
-        case TRX_STATUS_BUSY_TX:
-        case TRX_STATUS_BUSY_TX_ARET:
-            LOG_WARN("ON-Interrupted busy state %d\n", trxState);
+            case TRX_STATUS_BUSY_RX:
+            case TRX_STATUS_BUSY_TX:
+            case TRX_STATUS_BUSY_TX_ARET:
+                LOG_WARN("ON-Interrupted busy state %d\n", trxState);
 
-        case TRX_STATUS_TX_ARET_ON:
+            case TRX_STATUS_TX_ARET_ON:
+            case TRX_STATUS_RX_ON:
 
-             // First to TRX_OFF state
+                // First to TRX_OFF state
+                regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+            case TRX_STATUS_TRX_OFF:
+            case TRX_STATUS_TX_ON:
             
-            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                // Then go to RX_AACK_ON state
+                regWrite(RG_TRX_STATE, TRX_CMD_RX_AACK_ON );
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
 
-        case TRX_STATUS_TRX_OFF:
-        case TRX_STATUS_TX_ON:
-        
-            // 1-hop migration
-            flags.value = 0;
-            regWrite(RG_TRX_STATE, (RF2XX_AACK) ? TRX_CMD_RX_AACK_ON : TRX_CMD_RX_ON);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 
-            ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-            // fall-thru
+            case TRX_STATUS_RX_AACK_ON:
 
-        //case TRX_STATUS_RX_AACK_ON_NOCLK:
-        //case TRX_STATUS_BUSY_RX_AACK_NOCLK:
-        case TRX_STATUS_BUSY_RX:
-        case TRX_STATUS_BUSY_RX_AACK:
-            LOG_WARN("Allready receiving something \n");
-        case TRX_STATUS_RX_ON:
-        case TRX_STATUS_RX_AACK_ON:
-            // Proper state
-            ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-            return 1;
+                // Allready in proper state
+                flags.value = 0;
+                ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+                return 1;
 
-        default:
-            LOG_DBG("Unknown state: 0x%02x\n", trxState);
-            return 0;
-    }
+            case TRX_STATUS_BUSY_RX_AACK:
+                LOG_WARN("Allready receiving something \n");
+                return 1;
+
+            default:
+                LOG_ERR("Unknown state: 0x%02x\n", trxState);
+                return 0;
+        }
+#else
+    again:
+        trxState = bitRead(SR_TRX_STATUS);
+        switch (trxState) {
+            case TRX_STATUS_STATE_TRANSITION:
+                goto again;
+
+            case TRX_STATUS_BUSY_RX_AACK:
+            case TRX_STATUS_BUSY_TX:
+            case TRX_STATUS_BUSY_TX_ARET:
+                LOG_WARN("ON-Interrupted busy state %d\n", trxState);
+
+            case TRX_STATUS_TX_ARET_ON:
+            case TRX_STATUS_RX_AACK_ON:
+
+                // First go to TRX_OFF state
+                regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);               
+
+            case TRX_STATUS_TRX_OFF:
+            case TRX_STATUS_TX_ON:
+
+                ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT); 
+
+                // Then go to RX_ON state
+                regWrite(RG_TRX_STATE, TRX_CMD_RX_ON );
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+            case TRX_STATUS_RX_ON:
+
+                // Allready in proper state
+                flags.value = 0;
+                ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+                return 1;
+
+            case TRX_STATUS_BUSY_RX:
+                LOG_WARN("Allready receiving something \n");
+                return 1;
+
+            default:
+                LOG_ERR("Unknown state: 0x%02x\n", trxState);
+                // TODO Gregor? Contiki doesn't care if we return back 1 or 0...we should reset radio at this point
+                return 0;
+        }
+    
+#endif
+
 }
 
 
@@ -506,6 +553,7 @@ again:
 
         default:
             LOG_ERR("Unknown state: 0x%02x\n", trxState);
+            // TODO Gregor? Contiki doesn't care if we return back 1 or 0...we should reset radio at this point
             return 0;
     }
 }
