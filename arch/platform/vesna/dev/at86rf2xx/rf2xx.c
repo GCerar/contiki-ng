@@ -152,6 +152,8 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
     // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
 #endif
 
+    // TODO Gregor? Put state transition here?
+
     return RADIO_TX_OK;
 }
 
@@ -164,35 +166,38 @@ rf2xx_transmit(unsigned short transmit_len)
     uint8_t trxState, dummy __attribute__((unused));
     vsnSPI_ErrorStatus status;
 
-again:
+#if RF2XX_ARET
+
+    again:
     trxState = bitRead(SR_TRX_STATUS);
     switch (trxState) {
         case TRX_STATUS_STATE_TRANSITION:
             goto again;
 
-        case TRX_STATUS_RX_ON:
-        case TRX_STATUS_RX_AACK_ON:
         case TRX_STATUS_BUSY_RX:
         case TRX_STATUS_BUSY_RX_AACK:
         case TRX_STATUS_BUSY_TX:
         case TRX_STATUS_BUSY_TX_ARET:
+            LOG_WARN("TR-Interrupted busy state %d \n", trxState);
 
-            // First to TRX_OFF state
+        case TRX_STATUS_RX_AACK_ON:
+        case TRX_STATUS_RX_ON:
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
+            // First go to TRX_OFF state 
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
 
+        case TRX_STATUS_TX_ON:
         case TRX_STATUS_TRX_OFF:
 
-            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-
-            // Then go to TX state
-            regWrite(RG_TRX_STATE, (RF2XX_ARET) ? TRX_CMD_TX_ARET_ON : TRX_CMD_TX_ON);
+            // Than to TX_ARET_ON state
+            regWrite(RG_TRX_STATE, TRX_CMD_TX_ARET_ON);
             while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
 
-        case TRX_STATUS_TX_ON:
         case TRX_STATUS_TX_ARET_ON:
-        
-            // Already in proper state;
+
+            // Allready in proper state
             ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
             flags.value = 0;
             break;
@@ -202,6 +207,48 @@ again:
             RF2XX_STATS_ADD(txError);
             return RADIO_TX_ERR;
     }
+#else
+
+    again:
+    trxState = bitRead(SR_TRX_STATUS);
+    switch (trxState) {
+        case TRX_STATUS_STATE_TRANSITION:
+            goto again;
+
+        case TRX_STATUS_BUSY_RX:
+        case TRX_STATUS_BUSY_RX_AACK:
+        case TRX_STATUS_BUSY_TX:
+        case TRX_STATUS_BUSY_TX_ARET:
+            LOG_WARN("TR-Interrupted busy state %d \n", trxState);
+
+            // First go to TRX_OFF state 
+            regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+            ENERGEST_OFF(ENERGEST_TYPE_LISTEN); //TODO change position of energest 
+
+        case TRX_STATUS_RX_AACK_ON:
+        case TRX_STATUS_RX_ON:
+        case TRX_STATUS_TX_ARET_ON:
+        case TRX_STATUS_TRX_OFF:
+
+            // Than to TX_ON state
+            regWrite(RG_TRX_STATE, TRX_CMD_TX_ON);
+            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+
+        case TRX_STATUS_TX_ON:
+
+            // Allready in proper state
+            ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+            flags.value = 0;
+            break;
+
+        default: // Unknown state
+            LOG_ERR("Radio in state: 0x%02x\n", trxState);
+            RF2XX_STATS_ADD(txError);
+            return RADIO_TX_ERR;
+    }
+#endif
 
     // Fast mode initiate transmission
     setSLPTR();
