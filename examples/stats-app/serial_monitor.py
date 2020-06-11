@@ -235,12 +235,12 @@ try:
 
         # Failsafe mechanism - if Vesna for some reason stops responding 
         # So it didn't sent stop command 3min after MAX_APP_TIME, stop the monitor
-        if elapsedMin > ((MAX_APP_TIME/60) + 2):
-            print("\n \n Vesna must have crashed... :( \n \n")
-            monitor.store_str_to_file(""" \n ERROR!
-            Vesna has crashed durring application. 
-            No stop command found 3min after end of application!""")
-            break
+        #if elapsedMin > ((MAX_APP_TIME/60) + 2):
+        #    print("\n \n Vesna must have crashed... :( \n \n")
+        #    monitor.store_str_to_file(""" \n ERROR!
+        #    Vesna has crashed durring application. 
+        #    No stop command found 3min after end of application!""")
+        #    break
 
         if timeoutCnt > 50 :
             print("\n \n Vesna must have crashed... :( \n \n")
