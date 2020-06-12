@@ -34,7 +34,7 @@ class serial_monitor():
     def connect_to(self, p):
         try:
             self.port = "/dev/" + p
-            self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=20)
+            self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=10)
             print("Serial monitor opened on port: " + self.port)
         except:
             print("Serial port not connected or in use!..Exiting now")
@@ -45,7 +45,7 @@ class serial_monitor():
         for i in range(2, 5):
             try:
                 self.port = BASEPORT + str(i)
-                self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=20)
+                self.ser = serial.Serial(self.port, BAUD, BYTESIZE, PARITY, STOPBIT, timeout=10)
                 print("Serial monitor opened on port: " + self.port)
                 break
             except:
@@ -227,7 +227,7 @@ try:
         
         # Measure approximate elapsed time - just for a feeling (+- 10s)
         if((timer() - startTime) > 59):                                     # TODO: timeout is 20..test if this works   
-            elapsedMin += 1
+            elapsedMin += 1                                                 # Doesnt work - fix it
             startTime = timer()
             #print(timer() - startTime)
             #print(timer() - startTime - 59)
@@ -235,19 +235,19 @@ try:
 
         # Failsafe mechanism - if Vesna for some reason stops responding 
         # So it didn't sent stop command 3min after MAX_APP_TIME, stop the monitor
-        #if elapsedMin > ((MAX_APP_TIME/60) + 2):
-        #    print("\n \n Vesna must have crashed... :( \n \n")
-        #    monitor.store_str_to_file(""" \n ERROR!
-        #    Vesna has crashed durring application. 
-        #    No stop command found 3min after end of application!""")
-        #    break
-
-        if timeoutCnt > 50 :
+        if elapsedMin > ((MAX_APP_TIME/60) + 2):
             print("\n \n Vesna must have crashed... :( \n \n")
             monitor.store_str_to_file(""" \n ERROR!
             Vesna has crashed durring application. 
-            50 Timeout event in a row happend""")
+            No stop command found 3min after end of application!""")
             break
+
+        #if timeoutCnt > 50 :
+        #    print("\n \n Vesna must have crashed... :( \n \n")
+        #    monitor.store_str_to_file(""" \n ERROR!
+        #    Vesna has crashed durring application. 
+        #    50 Timeout event in a row happend""")
+        #    break
         
         # Read one line (until \n char)
         value = monitor.read_line()
