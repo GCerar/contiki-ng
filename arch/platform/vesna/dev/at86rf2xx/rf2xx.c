@@ -634,6 +634,7 @@ PROCESS_THREAD(rf2xx_process, ev, data)
 		PROCESS_YIELD_UNTIL(!RF2XX_POLLING_MODE && ev == PROCESS_EVENT_POLL);
         RF2XX_STATS_ADD(rxToStack);
 
+        LOG_DBG("Process Read \n");     //TODO delete
         packetbuf_clear();
         packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, rxFrame.timestamp);
         len = rf2xx_read(packetbuf_dataptr(), PACKETBUF_SIZE);
