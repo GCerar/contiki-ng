@@ -13,7 +13,6 @@
 // Defines for app
 #define UART1_CONF_BAUDRATE                         (460800)        //460800
 #define WATCHDOG_CONF_ENABLED                       (1)
-#define LOG_CONF_LEVEL_WATCHDOG                     LOG_LEVEL_DBG
 
 #define RF2XX_CONF_PACKET_STATS                     (0)
 #define RF2XX_CONF_DRIVER_STATS                     (0)

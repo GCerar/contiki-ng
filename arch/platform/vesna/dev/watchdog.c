@@ -20,13 +20,13 @@ void watchdog_init(void) {
     IWDG_SetPrescaler(IWDG_Prescaler_64);
     IWDG_SetReload(0xFFFF);
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
-    LOG_DBG("Initialized\n");
+    //LOG_DBG("Initialized\n");     // UART is not yet initialized 
 }
 
 void watchdog_start(void) {
     watchdog_init();
     IWDG_Enable();
-    LOG_DBG("Started\n");
+    //LOG_DBG("Started\n");         // UART is not yet initialized 
 }
 
 void watchdog_stop(void) {
