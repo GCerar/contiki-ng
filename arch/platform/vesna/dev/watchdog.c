@@ -17,7 +17,7 @@
 
 void watchdog_init(void) {
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-    IWDG_SetPrescaler(IWDG_Prescaler_64);
+    IWDG_SetPrescaler(IWDG_Prescaler_128);      // 13 seconds
     IWDG_SetReload(0xFFFF);
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Disable);
     //LOG_DBG("Initialized\n");     // UART is not yet initialized 
