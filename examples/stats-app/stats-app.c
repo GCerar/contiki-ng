@@ -29,7 +29,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   printf("> \n");
 
-  printf("AD %d \n", (60*60*3));
+  printf("AD %d \n", (60*60*15));
 
 	counter = 0;
 	
