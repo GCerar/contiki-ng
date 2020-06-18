@@ -45,14 +45,14 @@ PROCESS_THREAD(hello_world_process, ev, data)
   while(1) {
     printf("Still alive\n");
 
-   if(counter >= 1){       //TODO CHANGE BACK
+   /*if(counter >= 1){       //TODO CHANGE BACK
         printf("Going into while \n");
         counter = 0;
       while(1){}
-    }
+    }*/
 
     counter++;
-    if(counter == (6 * 60*3)){
+    if(counter == (6 * 60*15)){
       printf("End of app-time \n");
       printf("= \n");
       PROCESS_EXIT();
