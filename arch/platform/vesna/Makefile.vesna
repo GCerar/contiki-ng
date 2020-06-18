@@ -167,6 +167,20 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "reset run" \
 		-c "shutdown"
 
+
+%.debug %.debug.olimex: %.$(TARGET)
+	$(Q)openocd \
+		-f interface/ftdi/olimex-arm-usb-ocd.cfg \
+		-f target/stm32f1x.cfg \
+		-c "reset_config none" \
+		-c "telnet_port 4444" \
+		-c "gdb_port 3333" \
+		-c "tcl_port 6666" \
+		-c "init" \
+		-c "reset init" \
+		-c "verify_ircapture disable"
+
+
 %.logatec3: %.$(TARGET)
 	$(Q)openocd \
 		-f interface/sysfsgpio-lgtc.cfg \
@@ -180,15 +194,17 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 		-c "shutdown"
 
 
-%.debug %.debug.olimex: %.$(TARGET)
+%.debug.logatec3: %.$(TARGET)
 	$(Q)openocd \
-		-f interface/ftdi/olimex-arm-usb-ocd.cfg \
+		-f interface/sysfsgpio-lgtc.cfg \
 		-f target/stm32f1x.cfg \
-		-c "reset_config none" \
+		-c "reset_config none separate" \
 		-c "telnet_port 4444" \
 		-c "gdb_port 3333" \
 		-c "tcl_port 6666" \
 		-c "init" \
+		-c "soft_reset_halt" \
+		-c "wait_halt" \
 		-c "reset init" \
 		-c "verify_ircapture disable"
 
