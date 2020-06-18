@@ -15,7 +15,7 @@
 
 //#if WATCHDOG_ENABLED               //TODO CHANGE BACK
 
-static uint32_t counterrr = 0; 
+//static uint32_t counterrr = 0; 
 
 void watchdog_init(void) {
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
@@ -44,11 +44,11 @@ void watchdog_stop(void) {
 void watchdog_periodic(void) {
     IWDG_ReloadCounter();
     LOG_DBG("Tick\n");
-    counterrr++;                 //TODO CHANGE BACK
+   /* counterrr++;                 //TODO CHANGE BACK
     if(counterrr >= 30000){
         counterrr = 0;          
         printf("Tick\n");
-    }
+    }*/
 }
 
 void watchdog_reboot(void) {
