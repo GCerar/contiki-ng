@@ -16,15 +16,14 @@ PROCESS(serial_input_process, "Serial input command");
 AUTOSTART_PROCESSES(&serial_input_process);
 /*---------------------------------------------------------------------------*/
 
-uint32_t counter = 0;
-uint8_t addr[8];
-
 void STATS_input_command(char *data);
 void STATS_set_device_as_root(void);
 
 PROCESS_THREAD(hello_world_process, ev, data)
 {
   static struct etimer timer;
+  static uint8_t addr[8];
+  static uint32_t counter = 0;
 
   PROCESS_BEGIN();
 
@@ -46,12 +45,18 @@ PROCESS_THREAD(hello_world_process, ev, data)
   while(1) {
     printf("Still alive\n");
 
-	counter++;
-	if(counter == (6 * 60*3)){
-		printf("End of app-time \n");
-		printf("= \n");
-		PROCESS_EXIT();
-	}
+   if(counter >= 1){       //TODO CHANGE BACK
+        printf("Going into while \n");
+        counter = 0;
+      while(1){}
+    }
+
+    counter++;
+    if(counter == (6 * 60*3)){
+      printf("End of app-time \n");
+      printf("= \n");
+      PROCESS_EXIT();
+    }
 
     /* Wait for the periodic timer to expire and then restart the timer. */
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));

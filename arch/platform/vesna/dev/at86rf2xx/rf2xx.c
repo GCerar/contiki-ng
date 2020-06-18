@@ -274,6 +274,7 @@ rf2xx_transmit(unsigned short transmit_len)
 
     if(flags.TRX_UR){
         LOG_DBG("TRX_UR flag! \n");
+        return RADIO_TX_ERR;
     }
 
     #if RF2XX_PACKET_STATS

@@ -3,7 +3,7 @@
 
 // Enable/disable hardware watchdog. Default: Disabled
 #ifndef WATCHDOG_CONF_ENABLED
-#define WATCHDOG_ENABLED    (0)
+#define WATCHDOG_ENABLED    (1)     //TODO CHANGE BACK to 0
 #else
 #define WATCHDOG_ENABLED    (WATCHDOG_CONF_ENABLED)
 #endif

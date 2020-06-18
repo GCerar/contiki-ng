@@ -58,16 +58,17 @@ platform_init_stage_one(void)
 
     vsnPM_mesureAdcBitVolt();
     vsnCRC32_init();
+
+#if UART1_ENABLED
+	uart1_init(BAUD2UBR(UART1_BAUDRATE));
+	LOG_INFO("UART1 enabled\n");
+#endif
 }
 
 
 void
 platform_init_stage_two(void)
 {
-#if UART1_ENABLED
-	uart1_init(BAUD2UBR(UART1_BAUDRATE));
-	LOG_INFO("UART1 enabled\n");
-
 #if SLIP_ENABLED
 	slip_arch_init();
 	LOG_INFO("UART1 as SLIP interface enabled\n");
@@ -77,8 +78,6 @@ platform_init_stage_two(void)
 	serial_line_init();
 	LOG_INFO("UART1 as serial input enabled\n");
 #endif // SLIP_ENABLED
-
-#endif // UART1_ENABLED
 
 	uint16_t uuid = crc16_data(STM32F1_UUID.u8, sizeof(STM32F1_UUID.u8), 0);
 
