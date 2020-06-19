@@ -66,8 +66,8 @@
  * the mode in which the USART driver should be working, if none is defined
  * the driver defaults to interrupt mode
  */
-#define USART1_DMA_MODE
-//#define USART1_INTERRUPT_MODE
+//#define USART1_DMA_MODE
+#define USART1_INTERRUPT_MODE
 //#define USART2_DMA_MODE
 #define USART2_INTERRUPT_MODE
 //#define USART3_DMA_MODE
