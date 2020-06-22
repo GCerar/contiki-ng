@@ -31,7 +31,7 @@ typedef uint32_t uip_stats_t;
 
 // Enable/disable stack check.
 // TODO: linker script doesn't define proper pointers to enable this feature
-#define STACK_CHECK_CONF_ENABLED	(0)
+#define STACK_CHECK_CONF_ENABLED	(1)
 
 #ifdef AT86RF2XX
 #include "rf2xx_arch.h"

@@ -87,6 +87,7 @@ main(void)
 
 #if STACK_CHECK_ENABLED
   stack_check_init();
+  printf("CHECK STACK \n");
 #endif
 
   platform_init_stage_two();
