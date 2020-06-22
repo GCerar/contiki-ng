@@ -12,10 +12,7 @@
 #define LOG_MODULE "Watchdog"
 #define LOG_LEVEL LOG_CONF_LEVEL_WATCHDOG
 
-
-//#if WATCHDOG_ENABLED               //TODO CHANGE BACK
-
-//static uint32_t counterrr = 0; 
+#if WATCHDOG_ENABLED
 
 void watchdog_init(void) {
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
@@ -44,11 +41,6 @@ void watchdog_stop(void) {
 void watchdog_periodic(void) {
     IWDG_ReloadCounter();
     LOG_DBG("Tick\n");
-   /* counterrr++;                 //TODO CHANGE BACK
-    if(counterrr >= 30000){
-        counterrr = 0;          
-        printf("Tick\n");
-    }*/
 }
 
 void watchdog_reboot(void) {
@@ -60,8 +52,7 @@ void watchdog_reboot(void) {
     while (1);
 }
 
-/*
-#else // !WATCHDOG_CONF_ENABLED      //TODO CHANGE BACK
+#else // !WATCHDOG_CONF_ENABLED
 
 void watchdog_init(void) {}
 void watchdog_start(void) {}
@@ -70,4 +61,3 @@ void watchdog_stop(void) {}
 void watchdog_reboot(void) {}
 
 #endif // WATCHDOG_CONF_ENABLED
-*/

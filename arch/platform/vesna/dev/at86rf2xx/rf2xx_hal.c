@@ -19,7 +19,6 @@
 #include "rf2xx.h"
 #include "rf2xx_arch.h"
 
-// TODO: #if #endif case for ISMTV
 #if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
 #include "cc1101/cc1101_hal.h"
 #endif

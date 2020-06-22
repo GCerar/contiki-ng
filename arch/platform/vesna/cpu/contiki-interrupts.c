@@ -562,8 +562,8 @@ void EXTI2_IRQHandler(void) {}
 void EXTI3_IRQHandler(void) {
 	#if (AT86RF2XX_BOARD_ISMTV_V1_0 || AT86RF2XX_BOARD_ISMTV_V1_1)
 		if (EXTI_GetITStatus(EXTI_Line3) != RESET) {
-			EXTI_ClearITPendingBit(EXTI_Line3);	// TODO
-			rf2xx_isr();						// changed
+			EXTI_ClearITPendingBit(EXTI_Line3);
+			rf2xx_isr();
 		}
 	#endif
 }
@@ -577,7 +577,7 @@ void EXTI3_IRQHandler(void) {
 void EXTI9_5_IRQHandler(void) {
 	#if AT86RF2XX_BOARD_SNR
 		if (EXTI_GetITStatus(EXTI_Line9) != RESET) {
-			EXTI_ClearITPendingBit(EXTI_Line9);	//TODO same here
+			EXTI_ClearITPendingBit(EXTI_Line9);
 			rf2xx_isr();
 		}
 	#endif

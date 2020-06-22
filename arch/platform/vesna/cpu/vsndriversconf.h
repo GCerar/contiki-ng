@@ -66,7 +66,7 @@
  * the mode in which the USART driver should be working, if none is defined
  * the driver defaults to interrupt mode
  */
-#define USART1_DMA_MODE                 //TODO DMA was default
+#define USART1_DMA_MODE
 //#define USART1_INTERRUPT_MODE
 //#define USART2_DMA_MODE
 #define USART2_INTERRUPT_MODE
@@ -78,7 +78,7 @@
 /* Set the desired USART buffer sizes, if nothing is defined here
  * buffer size defaults to 128 bytes */
 /* RX buffer size for USARTs, USARTx_RX_BUFFER_LEN - 1 chars can be stored */
-#define USART1_RX_BUFFER_LEN  (1280 * 2) 
+#define USART1_RX_BUFFER_LEN  (1280 * 2)
 #define USART2_RX_BUFFER_LEN  128
 #define USART3_RX_BUFFER_LEN  128
 #define UART4_RX_BUFFER_LEN   128

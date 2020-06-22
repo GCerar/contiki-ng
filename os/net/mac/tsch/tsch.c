@@ -947,13 +947,9 @@ PROCESS_THREAD(tsch_pending_events_process, ev, data)
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
     tsch_rx_process_pending();
-    printf("Pr\n");
     tsch_tx_process_pending();
-    printf("Pt\n");   //TODO delete
     tsch_log_process_pending();
-    printf("Pl\n");
     tsch_keepalive_process_pending();
-    printf("Pk\n");
 #ifdef TSCH_CALLBACK_SELECT_CHANNELS
     TSCH_CALLBACK_SELECT_CHANNELS();
 #endif

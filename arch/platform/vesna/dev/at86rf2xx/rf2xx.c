@@ -153,7 +153,7 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
     // LOG_DBG("calculated CRC 0x%04x \n", *txFrame.crc);
 #endif
 
-    // State transition - put radio in proper state befor sending
+   // State transition - put radio in proper state befor sending
 #if RF2XX_ARET
 
     again:
@@ -400,7 +400,7 @@ rf2xx_pending_packet(void)
         uint16_t crc = crc16_data(rxFrame.content, rxFrame.len, 0x00);
 
         if(*rxFrame.crc != crc){
-            LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc);   // TODO brisi
+            LOG_DBG("CRC missmatch: 0x%04x != 0x%04x \n", crc, *rxFrame.crc)
             rxFrame.len = 0;    // TODO is it ok?
             return 0;
         }
@@ -653,7 +653,7 @@ PROCESS_THREAD(rf2xx_process, ev, data)
 	while(1) {
 		PROCESS_YIELD_UNTIL(!RF2XX_POLLING_MODE && ev == PROCESS_EVENT_POLL);
         RF2XX_STATS_ADD(rxToStack);
-        
+
         packetbuf_clear();
         packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, rxFrame.timestamp);
         len = rf2xx_read(packetbuf_dataptr(), PACKETBUF_SIZE);
