@@ -214,7 +214,7 @@ if((chr(value[0]) == 'A') and (chr(value[1])== 'D')):
     MAX_APP_TIME = int(value[3:])
 
 # ----------------------------------------------------------------------
-# Read input lines while LINES_TO_READ or until app stops sending data
+# Read input lines until app stops sending data
 # ----------------------------------------------------------------------
 
 line = 1
@@ -282,16 +282,13 @@ try:
 
 except KeyboardInterrupt:
     print("\n Keyboard interrupt!..send stop command")
-    monitor.send_cmd("=End")
+    monitor.send_cmd("=")
 
-    # Get last data ("driver statistics") before closing the monitor
     while(True):
         try:
             value = monitor.read_line()
             if(chr(value[0]) == '='):
                 break
-            else:
-                monitor.store_to_file(value)
         except:
             print("Error closing monitor")  
             break
@@ -309,6 +306,3 @@ except IOError:
 # ----------------------------------------------------------------------
 finally:
     monitor.close()
-    # Rename a file with device ID
-    #if(not args.output):
-    #    monitor.rename_file(deviceID)
