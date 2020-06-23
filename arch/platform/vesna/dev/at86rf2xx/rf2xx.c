@@ -957,8 +957,10 @@ rf2xx_CTTM_start(void){
     
     static txFrame_t continuousFrame;
     vsnSPI_ErrorStatus status;
+    uint8_t payload[127];
+    uint8_t payload_len = 127;
 
-/* 1. Reset AT86RF212 radio */
+// 1. Reset AT86RF212 radio 
     setRST();       // Hold radio in reset state 
 	clearEXTI();    // Clear interrupt flag
     flags.value = 0;
@@ -966,49 +968,50 @@ rf2xx_CTTM_start(void){
 	clearSLPTR();   // prevent going to sleep
     clearRST();     // Release radio from RESET state
 
-/* 2. Enable PLL_LOCK IRQ */
+// 2. Enable PLL_LOCK IRQ 
     regWrite(RG_IRQ_MASK, IRQ0_PLL_LOCK);
 
-/* 3. Disable TX_AUTO_CRC_ON */
+// 3. Disable TX_AUTO_CRC_ON
     bitWrite(SR_TX_AUTO_CRC_ON, 0);
 
-/* 4. Set radio to TRX_OFF state */
+// 4. Set radio to TRX_OFF state 
     regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
 
-/* 5. Set clock at pin 17 (CLKM) */
-    // TODO  why?
+// 5. Set clock at pin 17 (CLKM) 
+    // TODO  why do we need this?
 
-/* 6. Set channel */
+// 6. Set channel 
     bitWrite(SR_CHANNEL, 16);
 
-/* 7. Set output power to max */
+// 7. Set output power to max 
     bitWrite(SR_TX_PWR, 0xF);
 
-/* 8. Verify TRX_OFF state */
+// 8. Verify TRX_OFF state 
     while(bitRead(SR_TRX_STATUS) != TRX_STATUS_TRX_OFF){
         LOG_WARN("CTTM state error \n");
         regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
     }
 
-/* 9. Enable Continuous transmission Test mode - step #1 */
+// 9. Enable Continuous transmission Test mode - step #1 
     regWrite(0x36, 0x0F);
 
-// #CW_ONLY
-/* 10. Enable High Data Rate Mode, 2 Mb/s */
+// #if CW
+// 10. Enable High Data Rate Mode, 2 Mb/s 
     bitWrite(SR_OQPSK_DATA_RATE, OQPSK_DATA_RATE_2000);
 
-/* 11. Configure High Data rate Mode */
+// 11. Configure High Data rate Mode 
     regWrite(0x0A, 0xA7);
-// #CW_ONLY_END
 
-/* 12. Write PHR and PSDU data - frame buffer */
-
-    uint8_t payload[127];
-    uint8_t payload_len = 127;
-
-    //memset(payload, 0xBB, payload_len);
+// 12. Write PHR and PSDU data - frame buffer - choose one
     memset(payload, 0x00, payload_len);   // CW at Fc-0.5MHz
     //memset(payload, 0xFF, payload_len);   // CW at Fc+0.5MHz
+
+// #endif CW */
+
+/* #if PRBS
+// 10. 11. and 12. 
+    memset(payload, 0xBB, payload_len);
+// #endif    */
 
     memcpy(continuousFrame.content, payload, payload_len);
     continuousFrame.len = payload_len;
@@ -1018,33 +1021,33 @@ rf2xx_CTTM_start(void){
         LOG_ERR("SPI frame buffer write error\n ");
     }
 
-/* 13. Enable Continuous transmission Test mode - step #2 */
+// 13. Enable Continuous transmission Test mode - step #2
     regWrite(0x1C, 0x54);
 
-/* 14. Enable Continuous transmission Test mode - step #3 */
+// 14. Enable Continuous transmission Test mode - step #3 
     regWrite(0x1C, 0x46);
 
-/* 15. Go to PLL_ON state */
+// 15. Go to PLL_ON state 
     regWrite(RG_TRX_STATE, TRX_CMD_PLL_ON);
 
-/* 16. Wait for IRQ PLL_LOCK */
+// 16. Wait for IRQ PLL_LOCK 
     while(!flags.PLL_LOCK); 
     flags.value = 0;
 
-/* 17. Initiate transmission (issue TX_START command) */
+// 17. Initiate transmission (issue TX_START command) 
     regWrite(RG_TRX_STATE, TRX_CMD_TX_START);
 
-/* 18. Preform measurement */
+// 18. Preform measurement 
     LOG_INFO("Radio is continuosly transmitting on channel 19 \n "); //TODO
 }
 
 void
 rf2xx_CTTM_stop(void){
 
-/* 16. Disable continuous transmission test mode */
+// 19. Disable continuous transmission test mode 
     regWrite(0x1C, 0x0);
 
-/* 17. Reset radio */
+// 20. Reset radio 
     rf2xx_reset();
 }
 
