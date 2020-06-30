@@ -9,6 +9,7 @@ import sys
 import argparse
 import serial
 import os
+import time
 from datetime import datetime
 from timeit import default_timer as timer
 
@@ -113,6 +114,28 @@ class serial_monitor():
         print("File renamed to:" + DEFAULT_FILE_NAME[:-4] + 
                   "_node_" + name + ".txt")
 
+# ----------------------------------------------------------------------
+
+    def restart_vesna(self):
+        print("Reset Vesna")
+        # Export GPIO2_2 or linuxPin-66 to user space 
+        try:
+            os.system('echo 66 > /sys/class/gpio/export')
+        except:
+            print("Pin already exported")
+
+        # Set the direction of the pin to output
+        os.system('echo out > /sys/class/gpio/gpio66/direction')
+
+        # Set the value to 0 - reset Vesna
+        os.system('echo 0 > /sys/class/gpio/gpio66/value')
+
+        time.sleep(5)
+
+        # Set value back to 1 - wake Vesna up
+        os.system('echo 1 > /sys/class/gpio/gpio66/value')
+
+# ----------------------------------------------------------------------
 
     def close(self):
         self.ser.close()
@@ -242,12 +265,12 @@ try:
             No stop command found 3min after end of application!""")
             break
 
-        #if timeoutCnt > 50 :
-        #    print("\n \n Vesna must have crashed... :( \n \n")
-        #    monitor.store_str_to_file(""" \n ERROR!
-        #    Vesna has crashed durring application. 
-        #    50 Timeout event in a row happend""")
-        #    break
+        if timeoutCnt > 10 :
+            print("\n \n Vesna must have crashed...Restart it now \n")
+            monitor.store_str_to_file(""" \n WARNING!
+            Vesna has crashed durring application. 
+            10 Timeout event in a row happend""")
+            monitor.restart_vesna()
         
         # Read one line (until \n char)
         value = monitor.read_line()
