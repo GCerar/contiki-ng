@@ -1,10 +1,12 @@
 CONTIKI_PROJECT = root intermediate sink
 all: $(CONTIKI_PROJECT)
 
-# nrf52dk only supports slave mode, i.e., with no routing
-PLATFORMS_EXCLUDE = nrf52dk
-# does not fit on sky and z1 motes
-PLATFORMS_EXCLUDE += sky z1
+MAKE_MAC = MAKE_MAC_TSCH
+
+AT86RF2XX_BOARD = ISMTV_v1.1
+TARGET=vesna
+
+VESNA= ../../arch/platform/vesna/vesna-drivers/
 
 CONTIKI = ../..
 
