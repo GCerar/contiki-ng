@@ -269,7 +269,7 @@ try:
             print("\n \n Vesna must have crashed...Restart it now \n")
             monitor.store_str_to_file(""" \n WARNING!
             Vesna has crashed durring application. 
-            10 Timeout event in a row happend""")
+            10 Timeout event in a row happend. Restarting it now.. \n""")
             monitor.restart_vesna()
         
         # Read one line (until \n char)
