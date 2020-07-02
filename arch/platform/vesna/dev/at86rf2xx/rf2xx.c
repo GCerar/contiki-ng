@@ -174,14 +174,18 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
             // First go to TRX_OFF state 
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                goto again;
+            }
 
         case TRX_STATUS_TX_ON:
         case TRX_STATUS_TRX_OFF:
 
             // Than to TX_ARET_ON state
             regWrite(RG_TRX_STATE, TRX_CMD_TX_ARET_ON);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                goto again;
+            }
 
         case TRX_STATUS_TX_ARET_ON:
 
@@ -211,7 +215,9 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
             // First go to TRX_OFF state 
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                goto again;
+            }
 
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN); //TODO where to put it?
 
@@ -222,7 +228,9 @@ rf2xx_prepare(const void *payload, unsigned short payload_len)
 
             // Than to TX_ON state
             regWrite(RG_TRX_STATE, TRX_CMD_TX_ON);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                goto again;
+            }
 
         case TRX_STATUS_TX_ON:
 
@@ -291,10 +299,12 @@ rf2xx_transmit(unsigned short transmit_len)
     // First to TRX_OFF state
     regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
     while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+    // TODO: Force radio in correct state inside while loop.
 
     // Go to RX state
     regWrite(RG_TRX_STATE, (RF2XX_AACK) ? TRX_CMD_RX_AACK_ON: TRX_CMD_RX_ON);
     while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+    // TODO: Force radio in correct state inside while loop.
 
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
@@ -484,7 +494,8 @@ rf2xx_on(void)
 
                 // First go to TRX_OFF state
                 regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);               
+                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                // TODO: return to again            
 
             case TRX_STATUS_TX_ON:
             case TRX_STATUS_TRX_OFF:
@@ -494,6 +505,7 @@ rf2xx_on(void)
                 // Then go to RX_ON state
                 regWrite(RG_TRX_STATE, TRX_CMD_RX_ON );
                 while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                // TODO: Return to again
 
             case TRX_STATUS_RX_ON:
 
