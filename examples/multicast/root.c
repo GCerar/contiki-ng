@@ -54,7 +54,7 @@
 #define MAX_PAYLOAD_LEN 120
 #define MCAST_SINK_UDP_PORT 3001 /* Host byte order */
 #define SEND_INTERVAL CLOCK_SECOND /* clock ticks */
-#define ITERATIONS 100 /* messages */
+#define ITERATIONS 1000 /* messages */
 
 /* Start sending messages START_DELAY secs after we start so that routing can
  * converge */
@@ -62,7 +62,7 @@
 
 static struct uip_udp_conn * mcast_conn;
 static char buf[MAX_PAYLOAD_LEN];
-static uint32_t seq_id;
+static uint32_t seq_id = 150;
 
 #if !NETSTACK_CONF_WITH_IPV6 || !UIP_CONF_ROUTER || !UIP_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
 #error "This example can not work with the current contiki configuration"
@@ -88,6 +88,10 @@ multicast_send(void)
   PRINTF(" %lu bytes\n", (unsigned long)sizeof(id));
 
   seq_id++;
+
+  if(seq_id == 200){
+    seq_id = 0;
+  }
   uip_udp_packet_send(mcast_conn, buf, sizeof(id));
 }
 /*---------------------------------------------------------------------------*/
@@ -129,6 +133,7 @@ PROCESS_THREAD(rpl_root_process, ev, data)
     PROCESS_YIELD();
     if(etimer_expired(&et)) {
       if(seq_id == ITERATIONS) {
+        printf("Stop \n");
         etimer_stop(&et);
       } else {
         multicast_send();

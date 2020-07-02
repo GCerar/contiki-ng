@@ -45,7 +45,7 @@
 
 /* Change this to switch engines. Engine codes in uip-mcast6-engines.h */
 #ifndef UIP_MCAST6_CONF_ENGINE
-#define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_MPL
+#define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_SMRF
 #endif
 
 /* For Imin: Use 16 over CSMA, 64 over Contiki MAC */
@@ -63,5 +63,15 @@
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 10
 #endif
+
+
+#define LOG_CONF_LEVEL_MAIN                        LOG_LEVEL_INFO
+#define LOG_CONF_LEVEL_IPV6                        LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_6LOWPAN                     LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_TCPIP                       LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_MAC                         LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_FRAMER                      LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_RF2XX                       LOG_LEVEL_WARN
 
 #endif /* PROJECT_CONF_H_ */

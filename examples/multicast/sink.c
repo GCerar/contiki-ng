@@ -53,7 +53,7 @@
 #define MCAST_SINK_UDP_PORT 3001 /* Host byte order */
 
 static struct uip_udp_conn *sink_conn;
-static uint16_t count;
+static uint32_t count;
 
 #if !NETSTACK_CONF_WITH_IPV6 || !UIP_CONF_ROUTER || !UIP_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
 #error "This example can not work with the current contiki configuration"
