@@ -443,14 +443,18 @@ rf2xx_on(void)
 
                 // First to TRX_OFF state
                 regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                    goto again;
+                }
 
             case TRX_STATUS_TRX_OFF:
             case TRX_STATUS_TX_ON:
             
                 // Then go to RX_AACK_ON state
                 regWrite(RG_TRX_STATE, TRX_CMD_RX_AACK_ON );
-                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+                if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                    goto again;
+                }
 
                 ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 
@@ -494,8 +498,9 @@ rf2xx_on(void)
 
                 // First go to TRX_OFF state
                 regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-                // TODO: return to again            
+                if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                    goto again;
+                }          
 
             case TRX_STATUS_TX_ON:
             case TRX_STATUS_TRX_OFF:
@@ -504,8 +509,9 @@ rf2xx_on(void)
 
                 // Then go to RX_ON state
                 regWrite(RG_TRX_STATE, TRX_CMD_RX_ON );
-                while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
-                // TODO: Return to again
+                if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                    goto again;
+                }
 
             case TRX_STATUS_RX_ON:
 
@@ -558,7 +564,9 @@ again:
 
             // Idle Tx/Rx state
             regWrite(RG_TRX_STATE, TRX_CMD_TRX_OFF);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                goto again;
+            }
             flags.value = 0;
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             return 1;
@@ -573,11 +581,13 @@ again:
             // Busy states
             LOG_WARN("OFF-Interrupted busy state %d\n", trxState);
             regWrite(RG_TRX_STATE, TRX_CMD_FORCE_TRX_OFF);
-            while (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION);
+            if (bitRead(SR_TRX_STATUS) == TRX_STATUS_STATE_TRANSITION) {
+                goto again;
+            }
             flags.value = 0;
             ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
             
-            return 0;
+            return 0;   //TODO why not return 1?
 
         default:
             LOG_ERR("OFF-Unknown state: 0x%02x\n", trxState);
