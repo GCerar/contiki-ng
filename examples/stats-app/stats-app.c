@@ -14,7 +14,7 @@
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
 #define BGN_MEASURE_TIME_MS (10)
-#define MAX_APP_TIME  (60 * 60 * 2) //12 hours
+#define MAX_APP_TIME  (60 * 60 * 12) //12 hours
 
 uint32_t counter = 0;
 
