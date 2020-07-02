@@ -17,13 +17,30 @@
 #define UART1_CONF_BAUDRATE                         (460800)        //460800
 #define WATCHDOG_CONF_ENABLED                       (0)
 
-#define RF2XX_CONF_PACKET_STATS                     (0)
-#define RF2XX_CONF_DRIVER_STATS                     (0)
+#define RF2XX_CONF_PACKET_STATS                     (1)
+#define RF2XX_CONF_DRIVER_STATS                     (1)
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE          (uint8_t[]){ 11, 15, 20, 26 }
 
 // Testbed can have max 21 devices
 #define NETSTACK_MAX_ROUTE_ENTRIES                  (25)
 #define NBR_TABLE_CONF_MAX_NEIGHBORS                (25)
+
+
+
+/* Change this to switch engines. Engine codes in uip-mcast6-engines.h */
+#ifndef UIP_MCAST6_CONF_ENGINE
+#define UIP_MCAST6_CONF_ENGINE UIP_MCAST6_ENGINE_SMRF
+#endif
+
+/* For Imin: Use 16 over CSMA, 64 over Contiki MAC */
+#define ROLL_TM_CONF_IMIN_1         64
+#define MPL_CONF_DATA_MESSAGE_IMIN  64
+#define MPL_CONF_CONTROL_MESSAGE_IMIN  64
+
+#define UIP_MCAST6_ROUTE_CONF_ROUTES 1
+
+
+
 
 #endif /* PROJECT_CONF_H_ */
