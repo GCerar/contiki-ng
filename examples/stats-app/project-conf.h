@@ -21,7 +21,7 @@
 #define RF2XX_CONF_DRIVER_STATS                     (1)
 
 //#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE          (uint8_t[]){ 11, 15, 20, 26 }
-#define IEEE802154_CONF_DEFAULT_CHANNEL             (17)
+#define IEEE802154_CONF_DEFAULT_CHANNEL             (26)
 
 // Testbed can have max 21 devices
 #define NETSTACK_MAX_ROUTE_ENTRIES                  (25)
