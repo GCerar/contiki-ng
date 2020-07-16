@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * STATS-APP for MMT-IOT Fed4FIRE+ experiment
+ * STATS-APP 
  * -----------------------------------------------------------------------------
 */
 
@@ -13,6 +13,7 @@
 
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
+#define BGN_MEASURE_TIME_MS (10)
 #define MAX_APP_TIME  (60 * 60 * 12) //12 hours
 
 uint32_t counter = 0;
@@ -28,6 +29,7 @@ void STATS_close_app(void);
 /*---------------------------------------------------------------------------*/
 PROCESS(stats_process, "Stats app process");
 PROCESS(serial_input_process, "Serial input command");
+PROCESS(bgn_process, "Background noise process");
 
 AUTOSTART_PROCESSES(&serial_input_process);
 
@@ -48,6 +50,7 @@ STATS_input_command(char *data){
     char cmd = data[0];
     switch(cmd){
       case '>':
+		    process_start(&bgn_process, NULL);
         process_start(&stats_process, NULL);
         break;
       
@@ -88,6 +91,24 @@ STATS_output_command(uint8_t cmd)
 }
 
 /*---------------------------------------------------------------------------*/
+PROCESS_THREAD(bgn_process, ev, data)
+{
+	static struct etimer bgn_timer;
+
+	PROCESS_BEGIN();
+
+	etimer_set(&bgn_timer, BGN_MEASURE_TIME_MS);
+
+	while(1){
+		STATS_update_background_noise();
+
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&bgn_timer));
+		etimer_reset(&bgn_timer);
+	}
+	PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(stats_process, ev, data)
 {
 	static struct etimer timer;
@@ -102,6 +123,7 @@ PROCESS_THREAD(stats_process, ev, data)
 	// Empty buffers if they have some values from before
 	RF2XX_STATS_RESET();
 	STATS_clear_packet_stats();
+	STATS_clear_background_noise();
 
 	// Send app duration to LGTC
 	STATS_output_command(app_duration);
@@ -115,6 +137,7 @@ PROCESS_THREAD(stats_process, ev, data)
 
 		if((counter % 10) == 0){
 			STATS_print_packet_stats();
+			STATS_print_background_noise();
 		}
 		
 		// After max time send stop command ('=') and print driver statistics
@@ -150,6 +173,8 @@ STATS_set_device_as_root(void){
 void
 STATS_close_app(void){
 
+	//process_exit(&bgn_process);
+
 	STATS_print_driver_stats();
 	
 	// Send '=' cmd to stop the monitor
@@ -157,6 +182,7 @@ STATS_close_app(void){
 
 	// Empty buffers
 	RF2XX_STATS_RESET();
+	STATS_clear_background_noise();
 	STATS_clear_packet_stats();
 
 	// Reset the network
