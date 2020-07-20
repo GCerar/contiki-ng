@@ -37,7 +37,7 @@
 #define MCAST_SINK_UDP_PORT 3001 /* Host byte order */
 #define SEND_INTERVAL CLOCK_SECOND /* clock ticks */
 #define ITERATIONS 1000 /* messages */
-#define START_DELAY 60 //Start sending messages START_DELAY secs after we start
+#define START_DELAY 60*5 //Start sending messages START_DELAY secs after we start
 
 uint32_t counter = 0;
 
