@@ -29,7 +29,7 @@
 /*---------------------------------------------------------------------------*/
 #define SECOND 		  (1000)
 #define BGN_MEASURE_TIME_MS (10)
-#define MAX_APP_TIME  (60 * 60 * 2) //12 hours
+#define MAX_APP_TIME  (60 * 90) //1:30 hours
 
 #define MCAST_SINK_UDP_PORT 3001 /* Host byte order */
 
