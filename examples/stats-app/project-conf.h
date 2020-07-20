@@ -21,10 +21,14 @@
 #define RF2XX_CONF_DRIVER_STATS                     (1)
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE          (uint8_t[]){ 15 }
+#define IEEE802154_CONF_DEFAULT_CHANNEL             (15)
 
 // Testbed can have max 21 devices
 #define NETSTACK_MAX_ROUTE_ENTRIES                  (25)
 #define NBR_TABLE_CONF_MAX_NEIGHBORS                (25)
+
+// PAN-ID for FFF experiment - to join the same network
+// #define IEEE802154_CONF_PANID                       (0xBEEF)
 
 
 
