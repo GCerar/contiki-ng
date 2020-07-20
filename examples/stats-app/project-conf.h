@@ -5,7 +5,7 @@
 // All logs to LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_MAIN                        LOG_LEVEL_INFO
 #define LOG_CONF_LEVEL_IPV6                        LOG_LEVEL_NONE
-#define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_WARN
+#define LOG_CONF_LEVEL_RPL                         LOG_LEVEL_INFO
 #define LOG_CONF_LEVEL_6LOWPAN                     LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_TCPIP                       LOG_LEVEL_NONE
 #define LOG_CONF_LEVEL_MAC                         LOG_LEVEL_WARN
@@ -21,7 +21,7 @@
 #define RF2XX_CONF_DRIVER_STATS                     (1)
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE          (uint8_t[]){ 15 }
-//#define IEEE802154_CONF_DEFAULT_CHANNEL             (26)
+#define IEEE802154_CONF_DEFAULT_CHANNEL             (15)
 
 // PAN-ID for FFF experiment - to join the same network
 #define IEEE802154_CONF_PANID                       (0xBEEF)
