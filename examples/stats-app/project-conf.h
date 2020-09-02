@@ -28,7 +28,7 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS                (25)
 
 // PAN-ID for FFF experiment - to join the same network
-//#define IEEE802154_CONF_PANID                       (0xBEEF)
+#define IEEE802154_CONF_PANID                       (0xBEEF)
 
 
 
