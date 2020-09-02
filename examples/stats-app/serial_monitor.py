@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 from timeit import default_timer as timer
 
-MAX_APP_TIME  = 900
+MAX_APP_TIME  = 60*90
 
 DEFAULT_FILE_NAME = "node_stats.txt"
 

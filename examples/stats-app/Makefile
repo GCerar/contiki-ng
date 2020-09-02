@@ -8,7 +8,7 @@ VESNA= ../../arch/platform/vesna/vesna-drivers/
 
 CONTIKI = ../..
 
-#MAKE_MAC = MAKE_MAC_TSCH
+MAKE_MAC = MAKE_MAC_TSCH
 MAKE_ROUTING = MAKE_ROUTING_RPL_CLASSIC
 
 include $(CONTIKI)/Makefile.identify-target
