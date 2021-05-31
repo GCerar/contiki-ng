@@ -151,26 +151,26 @@ tsch_cs_select_replacement(uint8_t old_channel, tsch_stat_t old_ewma,
        * since we know that the other channels in the sorted list are even worse,
        * it makes sense to return immediately rather than to continue t
        */
-      LOG_DBG("$ ch %u: busy\n", candidate);
+      printf("$ ch %u: busy\n", candidate);
       return 0xff;
     }
 
     if(qualities[i].metric < old_ewma) {
       /* not good enough to replace */
-      LOG_DBG("$ ch %u: hysteresis check failed\n", candidate);
+      printf("$ ch %u: hysteresis check failed\n", candidate);
       return 0xff;
     }
 
     /* already in the current TSCH hopping sequence? */
     if(is_in_sequence[candidate - TSCH_STATS_FIRST_CHANNEL] != 0xff) {
-      LOG_DBG("$ ch %u: in current TSCH hopping seqence\n", candidate);
+      printf("$ ch %u: in current TSCH hopping seqence\n", candidate);
       continue;
     }
 
     /* ignore this candidate if too recently blacklisted */
     if(tsch_cs_busy_since[candidate - TSCH_STATS_FIRST_CHANNEL] != 0
         && tsch_cs_busy_since[candidate - TSCH_STATS_FIRST_CHANNEL] + TSCH_CS_BLACKLIST_DURATION_SEC > now) {
-      LOG_DBG("$ ch %u: recently blacklisted\n", candidate);
+      printf("$ ch %u: recently blacklisted\n", candidate);
       continue;
     }
 
@@ -236,12 +236,12 @@ tsch_cs_process(void)
      is_channel_busy[qualities[i].channel - TSCH_STATS_FIRST_CHANNEL] = 0;
   }
 
-  LOG_DBG("$ Bubble sorted channels: \n");
+  printf("$ Bubble sorted channels: \n");
   
   for(i = 0; i < TSCH_STATS_NUM_CHANNELS; ++i) {
     uint8_t ci = qualities[i].channel - TSCH_STATS_FIRST_CHANNEL;
     (void)ci;
-    LOG_DBG("$ ch %u q %u busy %u in seq %u\n",
+    printf("$ ch %u q %u busy %u in seq %u\n",
         qualities[i].channel,
         qualities[i].metric,
         is_channel_busy[ci],
@@ -256,7 +256,7 @@ tsch_cs_process(void)
     }
   }
   if(!try_replace) {
-    LOG_DBG("$ cs: not replacing\n");
+    printf("$ cs: not replacing\n");
     return false;
   }
 
@@ -290,7 +290,7 @@ tsch_cs_process(void)
     return true;
   }
 
-  LOG_DBG("$ cs: no changes\n");
+  printf("$ cs: no changes\n");
   return false;
 }
 /*---------------------------------------------------------------------------*/
