@@ -412,14 +412,14 @@ STATS_display_driver_stats(void){
 void
 STATS_print_driver_stats(void){
     printf("\n");
-    printf("TX suc%ld err%ld  cnt: B%ld D%ld A%ld\n",
+    printf("$ TX suc%ld err%ld  cnt: B%ld D%ld A%ld\n",
             RF2XX_STATS_GET(txCount),
             RF2XX_STATS_GET(txError),
             RF2XX_STATS_GET(txBeacon),
             RF2XX_STATS_GET(txData),
             RF2XX_STATS_GET(txAck)
     );
-    printf("RX suc%ld det%ld cnt: B%ld D%ld A%ld -> req(%ld)\n",
+    printf("$ RX suc%ld det%ld cnt: B%ld D%ld A%ld -> req(%ld)\n",
             RF2XX_STATS_GET(rxSuccess), 
             RF2XX_STATS_GET(rxDetected),
             RF2XX_STATS_GET(rxBeacon),
