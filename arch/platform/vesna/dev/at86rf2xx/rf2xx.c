@@ -1107,8 +1107,8 @@ rf2xx_CTTM_start(void){
 // 6. Set channel 
     bitWrite(SR_CHANNEL, 16);
 
-// 7. Set output power to max 
-    bitWrite(SR_TX_PWR, 0xF);
+// 7. Set output power to max (0x0 --> MAX, 0xF --> MIN)
+    bitWrite(SR_TX_PWR, 0x0);
 
 // 8. Verify TRX_OFF state 
     while(bitRead(SR_TRX_STATUS) != TRX_STATUS_TRX_OFF){
@@ -1119,7 +1119,7 @@ rf2xx_CTTM_start(void){
 // 9. Enable Continuous transmission Test mode - step #1 
     regWrite(0x36, 0x0F);
 
-// #if CW
+/* #if CW
 // 10. Enable High Data Rate Mode, 2 Mb/s 
     bitWrite(SR_OQPSK_DATA_RATE, OQPSK_DATA_RATE_2000);
 
@@ -1132,9 +1132,9 @@ rf2xx_CTTM_start(void){
 
 // #endif CW */
 
-/* #if PRBS
+// #if PRBS
 // 10. 11. and 12. 
-    memset(payload, 0xBB, payload_len);
+    memset(payload, 0xAA, payload_len);
 // #endif    */
 
     memcpy(continuousFrame.content, payload, payload_len);
