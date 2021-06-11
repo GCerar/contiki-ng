@@ -367,7 +367,7 @@ STATS_clear_background_noise(void)
 }
 
 
-
+#endif
 
 /**********************************************************************************************************
  * DRIVER STATISTICS
@@ -461,4 +461,3 @@ STATS_display_driver_stats_inline(void){
         RF2XX_STATS_GET(txSuccess)      // Successfull transmissions
     );
 }
-#endif
