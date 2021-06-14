@@ -163,14 +163,14 @@ tsch_cs_select_replacement(uint8_t old_channel, tsch_stat_t old_ewma,
 
     /* already in the current TSCH hopping sequence? */
     if(is_in_sequence[candidate - TSCH_STATS_FIRST_CHANNEL] != 0xff) {
-      LOG_DBG("ch %u: in current TSCH hopping seqence\n", candidate);
+      LOG_DBG("ch %u: in seq\n", candidate);
       continue;
     }
 
     /* ignore this candidate if too recently blacklisted */
     if(tsch_cs_busy_since[candidate - TSCH_STATS_FIRST_CHANNEL] != 0
         && tsch_cs_busy_since[candidate - TSCH_STATS_FIRST_CHANNEL] + TSCH_CS_BLACKLIST_DURATION_SEC > now) {
-      LOG_DBG("ch %u: recently blacklisted\n", candidate);
+      LOG_DBG("ch %u: recent bl\n", candidate);
       continue;
     }
 
@@ -230,6 +230,8 @@ tsch_cs_process(void)
     uint8_t channel = tsch_hopping_sequence[i];
     is_in_sequence[channel - TSCH_STATS_FIRST_CHANNEL] = i;
   }
+
+  printf("Magic number: %d \n", tsch_hopping_sequence_length.val);
 
   /* mark the first N channels as "good" - there is nothing better to select */
   for(i = 0; i < tsch_hopping_sequence_length.val; ++i) {
@@ -318,14 +320,12 @@ tsch_cs_channel_stats_updated(uint8_t updated_channel, uint16_t old_busyness_met
   if(old_is_busy != new_is_busy) {
     /* the status of the channel has changed*/
     recaculation_requested = true;
-    printf("recalculate \n");
 
   } else if(new_is_busy) {
     /* run the reselection algorithm iff the channel is both (1) bad and (2) in use */
     if(tsch_cs_bitmap_contains(tsch_cs_current_bitmap, updated_channel)) {
       /* the channel is in use and is busy */
       recaculation_requested = true;
-      printf("recalculate \n");
     }
   }
 }
