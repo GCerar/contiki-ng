@@ -41,7 +41,7 @@
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE "TSCH CS"
-#define LOG_LEVEL LOG_LEVEL_MAC
+#define LOG_LEVEL LOG_LEVEL_DBG
 
 /*---------------------------------------------------------------------------*/
 
@@ -202,6 +202,7 @@ tsch_cs_process(void)
 
   if(!recaculation_requested) {
     /* nothing to do */
+    printf("Nothing to do ...\n");
     return false;
   }
 
