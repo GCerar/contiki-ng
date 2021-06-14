@@ -202,7 +202,6 @@ tsch_cs_process(void)
 
   if(!recaculation_requested) {
     /* nothing to do */
-    printf("Nothing to do ...\n");
     return false;
   }
 
@@ -319,12 +318,14 @@ tsch_cs_channel_stats_updated(uint8_t updated_channel, uint16_t old_busyness_met
   if(old_is_busy != new_is_busy) {
     /* the status of the channel has changed*/
     recaculation_requested = true;
+    printf("recalculate \n");
 
   } else if(new_is_busy) {
     /* run the reselection algorithm iff the channel is both (1) bad and (2) in use */
     if(tsch_cs_bitmap_contains(tsch_cs_current_bitmap, updated_channel)) {
       /* the channel is in use and is busy */
       recaculation_requested = true;
+      printf("recalculate \n");
     }
   }
 }
