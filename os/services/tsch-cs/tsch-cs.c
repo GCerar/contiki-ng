@@ -41,7 +41,7 @@
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE "TSCH CS"
-#define LOG_LEVEL LOG_LEVEL_DBG
+#define LOG_LEVEL LOG_LEVEL_MAC
 
 /*---------------------------------------------------------------------------*/
 
@@ -55,7 +55,7 @@
 #define TSCH_CS_HYSTERESIS (TSCH_STATS_BINARY_SCALING_FACTOR / 10)
 
 /* After removing a channel from the sequence, do not add it back at least this time */
-#define TSCH_CS_BLACKLIST_DURATION_SEC (5 * 60)
+#define TSCH_CS_BLACKLIST_DURATION_SEC (1 * 60) // TODO: this was modified from 5min to 1 min
 
 /* A potential for change detected? */
 static bool recaculation_requested;
@@ -230,8 +230,6 @@ tsch_cs_process(void)
     uint8_t channel = tsch_hopping_sequence[i];
     is_in_sequence[channel - TSCH_STATS_FIRST_CHANNEL] = i;
   }
-
-  printf("Magic number: %d \n", tsch_hopping_sequence_length.val);
 
   /* mark the first N channels as "good" - there is nothing better to select */
   for(i = 0; i < tsch_hopping_sequence_length.val; ++i) {
