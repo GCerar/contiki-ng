@@ -251,7 +251,6 @@ tsch_cs_process(void)
     uint8_t channel = tsch_hopping_sequence[i];
     if(is_channel_busy[channel - TSCH_STATS_FIRST_CHANNEL]) {
       try_replace = true;
-      printf("Try replaceing!");
     }
   }
   if(!try_replace) {
